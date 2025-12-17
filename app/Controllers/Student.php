@@ -18,20 +18,21 @@ class Student extends BaseController
         $this->db = \Config\Database::connect();
     }
 
-    // 1. Hiển thị giao diện
+    // 1. View
     public function index()
     {
         return view('student_index');
     }
 
-    // 2. API Lấy danh sách
+    // 2. API Lấy danh sách (JOIN với bảng student_classes để lấy tên lớp hành chính nếu có)
     public function list()
     {
         $keyword = $this->request->getGet('keyword');
 
         $builder = $this->db->table('students');
-        $builder->select('students.*, users.email');
-        $builder->join('users', 'students.user_id = users.id', 'left');
+        $builder->select('students.*, users.email, student_classes.name as class_name');
+        $builder->join('users', 'students.user_id = users.id');
+        $builder->join('student_classes', 'students.student_class_id = student_classes.id', 'left'); // Join trái vì có thể chưa có lớp
         
         if ($keyword) {
             $builder->groupStart()
@@ -43,6 +44,7 @@ class Student extends BaseController
         
         $data = $builder->get()->getResultArray();
 
+        // Xử lý hiển thị
         $result = array_map(function($row){
             $genderShow = 'Khác';
             if ($row['gender'] == 'male') $genderShow = 'Nam';
@@ -50,111 +52,70 @@ class Student extends BaseController
             
             $row['gender_text'] = $genderShow;
             $row['fullname'] = $row['name']; 
+            // Nếu chưa có lớp thì hiện dấu -
+            $row['lop'] = $row['class_name'] ?? '-';
             return $row;
         }, $data);
 
         return $this->respond(['success' => true, 'data' => $result]);
     }
 
+    // 3. API Thêm mới
     public function create()
     {
         $json = $this->request->getJSON();
 
-        // Validate input
-        if (empty($json->student_code) || empty($json->fullname) || empty($json->email)) {
-            return $this->respond(['success' => false, 'message' => 'Thiếu thông tin bắt buộc']);
-        }
-
+        // Map giới tính từ Giao diện (Nam/Nữ) sang Database (male/female)
         $genderDB = 'other';
         if ($json->gender == 'Nam') $genderDB = 'male';
         if ($json->gender == 'Nữ') $genderDB = 'female';
 
-        // Kiểm tra mã sinh viên đã tồn tại chưa
-        $existingStudent = $this->db->table('students')
-            ->where('student_code', $json->student_code)
-            ->get()
-            ->getRow();
-        
-        if ($existingStudent) {
-            return $this->respond(['success' => false, 'message' => 'Mã sinh viên đã tồn tại']);
-        }
-
-        // Kiểm tra email đã tồn tại chưa
-        $existingEmail = $this->db->table('users')
-            ->where('email', $json->email)
-            ->get()
-            ->getRow();
-        
-        if ($existingEmail) {
-            return $this->respond(['success' => false, 'message' => 'Email đã tồn tại']);
-        }
-
-        $this->db->transStart();
+        $this->db->transStart(); 
 
         try {
             // B1: Tạo User
+            // Mật khẩu mặc định là Mã SV
             $passHash = password_hash($json->student_code, PASSWORD_DEFAULT);
-            $userInserted = $this->db->table('users')->insert([
+            $this->db->table('users')->insert([
                 'name' => $json->fullname,
                 'email' => $json->email,
-                'password_hash' => $passHash
+                'password_hash' => $passHash,
+                'created_at' => date('Y-m-d H:i:s')
             ]);
-
-            if (!$userInserted) {
-                throw new \Exception('Không thể tạo user: ' . json_encode($this->db->error()));
-            }
-
             $userId = $this->db->insertID();
 
-            if (!$userId) {
-                throw new \Exception('Không lấy được user ID sau khi insert');
-            }
-
-            // B2: Gán quyền (kiểm tra bảng role_user có tồn tại không)
-            if ($this->db->tableExists('role_user')) {
-                $roleInserted = $this->db->table('role_user')->insert([
-                    'user_id' => $userId, 
-                    'role_id' => 4
-                ]);
-                
-                if (!$roleInserted) {
-                    throw new \Exception('Không thể gán quyền: ' . json_encode($this->db->error()));
-                }
-            }
+            // B2: Gán quyền (Role ID = 4 là Student theo file SQL của bạn)
+            $this->db->table('role_user')->insert([
+                'user_id' => $userId, 
+                'role_id' => 4 
+            ]);
 
             // B3: Tạo Student
-            $studentInserted = $this->studentModel->insert([
+            $this->studentModel->insert([
                 'user_id' => $userId,
                 'student_code' => $json->student_code,
                 'name' => $json->fullname,
-                'dob' => $json->dob ?? null,
+                'dob' => $json->dob,
                 'gender' => $genderDB,
-                'address' => $json->address ?? '',
-                'status' => 1
+                'address' => $json->address,
+                'status' => 1,
+                // Hiện tại form chưa có chọn lớp, để null hoặc cập nhật sau
+                'student_class_id' => null 
             ]);
-
-            if (!$studentInserted) {
-                $errors = $this->studentModel->errors();
-                throw new \Exception('Không thể tạo student: ' . json_encode($errors ?: $this->db->error()));
-            }
 
             $this->db->transComplete();
 
             if ($this->db->transStatus() === false) {
-                $error = $this->db->error();
-                log_message('error', 'Transaction failed: ' . json_encode($error));
-                return $this->respond(['success' => false, 'message' => 'Lỗi transaction: ' . ($error['message'] ?? 'Không xác định')]);
+                 return $this->respond(['success' => false, 'message' => 'Lỗi transaction']);
             }
-            
             return $this->respond(['success' => true, 'message' => 'Thêm sinh viên thành công']);
 
         } catch (\Exception $e) {
-            $this->db->transRollback();
-            log_message('error', 'Exception in create student: ' . $e->getMessage());
-            return $this->respond(['success' => false, 'message' => $e->getMessage()]);
+            return $this->respond(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);
         }
     }
 
+    // 4. API Cập nhật
     public function update()
     {
         $json = $this->request->getJSON();
@@ -170,6 +131,13 @@ class Student extends BaseController
             'address' => $json->address
         ];
 
+        // Cập nhật cả tên trong bảng users để đồng bộ
+        // Lấy user_id từ bảng students trước
+        $student = $this->studentModel->find($json->id);
+        if($student) {
+            $this->db->table('users')->where('id', $student['user_id'])->update(['name' => $json->fullname]);
+        }
+
         if ($this->studentModel->update($json->id, $data)) {
             return $this->respond(['success' => true, 'message' => 'Cập nhật thành công']);
         } else {
@@ -177,14 +145,78 @@ class Student extends BaseController
         }
     }
 
+    // 5. Toggle Lock
     public function toggleLock()
     {
         $json = $this->request->getJSON();
-        
-        // Query trực tiếp để đảo ngược trạng thái NOT status
+        // SQL của bạn dùng TinyInt(1) cho status, logic này vẫn đúng
         $sql = "UPDATE students SET status = NOT status WHERE id = ?";
         $this->db->query($sql, [$json->id]);
 
         return $this->respond(['success' => true, 'message' => 'Đổi trạng thái thành công']);
+    }
+    public function schedule()
+    {
+        $studentId = $this->request->getGet('id');
+
+        if (!$studentId) {
+            return $this->respond(['success' => false, 'message' => 'Thiếu ID sinh viên']);
+        }
+
+        // Lấy thông tin cơ bản sinh viên
+        $student = $this->studentModel->find($studentId);
+        if (!$student) {
+            return $this->respond(['success' => false, 'message' => 'Không tìm thấy sinh viên']);
+        }
+
+        // Query phức hợp để lấy: Lớp, Môn, Giáo viên, Lịch, Điểm
+        $builder = $this->db->table('enrollments e');
+        $builder->select('
+            c.class_code,
+            sub.name as subject_name,
+            c.format,
+            CONCAT(t.first_name, " ", t.last_name) as teacher_name,
+            sch.day_of_week,
+            sch.start_time,
+            sch.end_time,
+            sch.room,
+            e.midterm_score,
+            e.final_score
+        ');
+        
+        // JOIN CÁC BẢNG (Dựa trên SQL bạn cung cấp)
+        $builder->join('classes c', 'e.class_id = c.id');
+        $builder->join('subjects sub', 'c.subject_id = sub.id');
+        $builder->join('teachers t', 'c.teacher_id = t.id', 'left');
+        $builder->join('schedules sch', 'c.id = sch.class_id', 'left'); // Dùng Left Join vì có thể lớp online không có phòng/lịch cố định
+        
+        $builder->where('e.student_id', $studentId);
+        
+        // Sắp xếp theo thứ trong tuần
+        $builder->orderBy('sch.day_of_week', 'ASC');
+
+        $classes = $builder->get()->getResultArray();
+
+        // Xử lý hiển thị dữ liệu cho đẹp (Format giờ, thứ)
+        $classes = array_map(function($row) {
+            // Xử lý thứ
+            $row['day_text'] = $row['day_of_week'] ? "Thứ " . $row['day_of_week'] : "Lịch linh động";
+            if ($row['day_of_week'] == 8) $row['day_text'] = "Chủ Nhật";
+
+            // Xử lý giờ (Cắt bỏ giây: 07:00:00 -> 07:00)
+            if ($row['start_time']) {
+                $row['time_text'] = substr($row['start_time'], 0, 5) . ' - ' . substr($row['end_time'], 0, 5);
+            } else {
+                $row['time_text'] = "";
+            }
+
+            return $row;
+        }, $classes);
+
+        return $this->respond([
+            'success' => true, 
+            'student' => $student, 
+            'classes' => $classes
+        ]);
     }
 }

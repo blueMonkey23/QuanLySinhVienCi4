@@ -12,3 +12,4 @@ $routes->get('student/list', 'Student::list');       // API lấy danh sách
 $routes->post('student/create', 'Student::create');  // API thêm
 $routes->post('student/update', 'Student::update');  // API sửa
 $routes->post('student/toggleLock', 'Student::toggleLock'); // API khóa
+$routes->get('student/schedule', 'Student::schedule');

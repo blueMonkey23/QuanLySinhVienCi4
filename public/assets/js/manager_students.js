@@ -159,7 +159,66 @@ async function toggleLock(id) {
     }
 }
 
-// --- 6. HÀM XEM LỊCH  ---
+// --- 6. HÀM XEM LỊCH & ĐIỂM (Đã cập nhật) ---
 async function viewSchedule(studentId) {
-    alert("Chức năng đang cập nhật (Cần viết thêm Controller GetSchedule)");
+    const tbody = document.getElementById('schedule-tbody');
+    const nameSpan = document.getElementById('scheduleStudentName');
+    const msg = document.getElementById('no-class-msg');
+    
+    // Reset giao diện trước khi tải
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-3">Đang tải dữ liệu...</td></tr>';
+    nameSpan.innerText = '...';
+    msg.classList.add('d-none');
+    
+    // Hiện Modal ngay lập tức
+    new bootstrap.Modal(document.getElementById('scheduleModal')).show();
+
+    try {
+        // GỌI API VỪA VIẾT
+        const res = await fetch(`${API_URL}/schedule?id=${studentId}`);
+        const data = await res.json();
+
+        if (data.success) {
+            // Hiển thị tên sinh viên trên tiêu đề Modal
+            nameSpan.innerText = data.student.name + ' (' + data.student.student_code + ')';
+            tbody.innerHTML = '';
+
+            if (data.classes.length > 0) {
+                // Duyệt qua danh sách lớp và vẽ dòng tr
+                data.classes.forEach(cls => {
+                    // Xử lý hiển thị điểm (nếu null thì hiện dấu -)
+                    const diemGK = cls.midterm_score !== null ? cls.midterm_score : '-';
+                    const diemCK = cls.final_score !== null ? cls.final_score : '-';
+                    const diemShow = `${diemGK} / ${diemCK}`;
+
+                    const row = `
+                        <tr>
+                            <td class="fw-bold">${cls.class_code}</td>
+                            <td>
+                                ${cls.subject_name}<br>
+                                <span class="badge bg-light text-dark border">${cls.format}</span>
+                            </td>
+                            <td>${cls.teacher_name || '<span class="text-muted">Chưa gán</span>'}</td>
+                            <td>
+                                <span class="badge bg-primary">${cls.day_text}</span><br>
+                                <small>${cls.time_text}</small>
+                            </td>
+                            <td class="fw-bold text-secondary">${cls.room || '-'}</td>
+                            <td class="text-center fw-bold text-danger">${diemShow}</td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            } else {
+                // Nếu không có lớp nào
+                msg.classList.remove('d-none');
+                tbody.innerHTML = '';
+            }
+        } else {
+            alert(data.message);
+        }
+    } catch (error) {
+        console.error(error);
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Lỗi tải dữ liệu!</td></tr>';
+    }
 }
