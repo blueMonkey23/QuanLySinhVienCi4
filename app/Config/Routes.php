@@ -76,6 +76,7 @@ $routes->group('backend', ['filter' => 'auth'], function($routes) {
     // 2. Quản lý Sinh viên & Ghi danh
     $routes->get('students.php', 'Manager\StudentController::index');   // Search / List
     $routes->post('students.php', 'Manager\StudentController::save');   // Create / Update / Toggle Lock
+    $routes->get('get_student_classes.php', 'Manager\StudentController::getStudentClasses'); // Xem lớp & TKB (dùng chung cho manager và student)
     $routes->post('manager_enroll_student.php', 'Manager\EnrollmentController::enroll'); // Add/Remove student class
     $routes->post('manager_update_grades.php', 'Manager\EnrollmentController::updateGrades'); // Update grades
 

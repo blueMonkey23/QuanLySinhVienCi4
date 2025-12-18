@@ -147,7 +147,7 @@ async function saveStudent() {
     
     const data = {
         id: id,
-        student_code: document.getElementById('studentCode').value.trim(),
+        studentCode: document.getElementById('studentCode').value.trim(),
         fullname: document.getElementById('fullname').value.trim(),
         email: document.getElementById('email').value.trim(),
         dob: document.getElementById('dob').value,
@@ -156,7 +156,7 @@ async function saveStudent() {
     };
 
     // Validate cơ bản
-    if (!data.student_code || !data.fullname || !data.email) {
+    if (!data.studentCode || !data.fullname || !data.email) {
         alert('Vui lòng điền đầy đủ các trường bắt buộc!');
         return;
     }
