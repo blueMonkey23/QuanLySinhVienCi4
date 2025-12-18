@@ -3,6 +3,7 @@
 namespace App\Controllers\Manager;
 
 use App\Controllers\BaseController;
+use App\Models\TeacherModel;
 
 class ScheduleController extends BaseController
 {
@@ -10,7 +11,7 @@ class ScheduleController extends BaseController
     {
         $teacherId = $this->request->getGet('teacher_id');
         $room = $this->request->getGet('room');
-        $semesterId = 1;
+        $semesterId = 1; // Mặc định HK1
 
         $db = \Config\Database::connect();
         $builder = $db->table('classes')
@@ -30,16 +31,21 @@ class ScheduleController extends BaseController
             $builder->like('schedules.room', $room);
         }
 
-        $data = $builder->orderBy('schedules.day_of_week', 'ASC')
-                        ->orderBy('schedules.start_time', 'ASC')
-                        ->get()->getResultArray();
+        $schedules = $builder->orderBy('schedules.day_of_week', 'ASC')
+                            ->orderBy('schedules.start_time', 'ASC')
+                            ->get()->getResultArray();
+
+        // Get teachers for filter
+        $teacherModel = new TeacherModel();
+        $teachers = $teacherModel->findAll();
 
         $viewData = [
-            'schedules' => $data,
-            'teacherId' => $teacherId,
-            'room' => $room
+            'schedules' => $schedules,
+            'teachers' => $teachers,
+            'selectedTeacherId' => $teacherId,
+            'selectedRoom' => $room
         ];
-        
+
         return view('manager_schedule', $viewData);
     }
 }

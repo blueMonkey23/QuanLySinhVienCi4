@@ -7,12 +7,9 @@ use App\Models\ClassModel;
 use App\Models\ScheduleModel;
 use App\Models\SubjectModel;
 use App\Models\TeacherModel;
-use CodeIgniter\API\ResponseTrait;
 
 class ClassController extends BaseController
 {
-    use ResponseTrait;
-
     protected $classModel;
     protected $scheduleModel;
     protected $db;
@@ -24,42 +21,79 @@ class ClassController extends BaseController
         $this->db = \Config\Database::connect();
     }
 
-    // 1. API: Lấy danh sách lớp (Thay thế manager_classes.php)
-    // URL: backend/manager_classes.php?q=...&subject=...
+    // 1. Danh sách lớp học - GET
     public function index()
     {
         $keyword = $this->request->getGet('q');
         $subjectId = $this->request->getGet('subject');
 
-        // Gọi hàm getClassesWithDetails đã viết trong Model ở bước trước
         $data = $this->classModel->getClassesWithDetails($keyword, $subjectId);
 
-        return $this->respond([
-            'success' => true,
-            'data' => $data
-        ]);
+        // Map 'id' thành 'class_id' và chuyển đổi day_of_week
+        $data = array_map(function($item) {
+            $item['class_id'] = $item['id'];
+            $item['day_of_week'] = $this->convertBitToDay($item['day_of_week'] ?? 2);
+            $item['schedule_time'] = substr($item['start_time'] ?? '00:00', 0, 5) . '-' . substr($item['end_time'] ?? '00:00', 0, 5);
+            return $item;
+        }, $data);
+
+        $viewData = [
+            'classes' => $data,
+            'keyword' => $keyword,
+            'subjectId' => $subjectId
+        ];
+
+        return view('manager_classes', $viewData);
     }
 
-    // 2. API: Thêm lớp mới (Thay thế manager_class_add.php)
-    // URL: backend/manager_class_add.php (POST)
+    // 2. Form thêm lớp - GET
+    public function addForm()
+    {
+        $subjectModel = new SubjectModel();
+        $teacherModel = new TeacherModel();
+        
+        $viewData = [
+            'subjects' => $subjectModel->findAll(),
+            'teachers' => $teacherModel->findAll()
+        ];
+        
+        return view('manager_class_add', $viewData);
+    }
+
+    // 3. Xử lý thêm lớp - POST
     public function create()
     {
-        $input = $this->request->getJSON(true);
-        $data = $input['data'] ?? [];
-
-        // Validate dữ liệu cơ bản
-        if (empty($data['class_id']) || empty($data['subject_id']) || empty($data['teacher_id']) || empty($data['class_room'])) {
-            return $this->fail('Vui lòng điền đầy đủ thông tin bắt buộc.', 400);
+        $session = session();
+        
+        // Validate
+        if (empty($this->request->getPost('class_id')) || 
+            empty($this->request->getPost('subject_id')) || 
+            empty($this->request->getPost('teacher_id')) || 
+            empty($this->request->getPost('class_room'))) {
+            $session->setFlashdata('error', 'Vui lòng điền đầy đủ thông tin bắt buộc.');
+            return redirect()->back()->withInput();
         }
 
-        // Chuyển đổi dữ liệu
-        $dayInt = $this->convertDayToBit($data['day_of_week']); // Hàm helper ở dưới
-        $times = explode('-', $data['schedule_time']); // "07:30-11:30" -> ["07:30", "11:30"]
-        
-        if (count($times) < 2) return $this->fail('Giờ học không hợp lệ.', 400);
+        $data = [
+            'class_id' => $this->request->getPost('class_id'),
+            'subject_id' => $this->request->getPost('subject_id'),
+            'teacher_id' => $this->request->getPost('teacher_id'),
+            'class_room' => $this->request->getPost('class_room'),
+            'day_of_week' => $this->request->getPost('day_of_week'),
+            'schedule_time' => $this->request->getPost('schedule_time'),
+            'format' => $this->request->getPost('format')
+        ];
 
-        // 2.1. Kiểm tra trùng phòng (Room Conflict)
-        // Gọi hàm checkRoomConflict trong ScheduleModel
+        // Chuyển đổi dữ liệu
+        $dayInt = $this->convertDayToBit($data['day_of_week']);
+        $times = explode('-', $data['schedule_time']);
+        
+        if (count($times) < 2) {
+            $session->setFlashdata('error', 'Giờ học không hợp lệ.');
+            return redirect()->back()->withInput();
+        }
+
+        // Kiểm tra trùng phòng
         $conflict = $this->scheduleModel->checkRoomConflict(
             $data['class_room'], 
             $dayInt, 
@@ -68,29 +102,29 @@ class ClassController extends BaseController
         );
 
         if ($conflict) {
-            return $this->fail("Xung đột phòng học! Phòng '{$data['class_room']}' đã có lớp {$conflict->class_code} học vào giờ này.", 409);
+            $session->setFlashdata('error', "Xung đột phòng học! Phòng '{$data['class_room']}' đã có lớp {$conflict->class_code} học vào giờ này.");
+            return redirect()->back()->withInput();
         }
 
-        // 2.2. Kiểm tra trùng mã lớp (Class Code)
+        // Kiểm tra trùng mã lớp
         if ($this->classModel->where('class_code', $data['class_id'])->first()) {
-            return $this->fail('Mã lớp này đã tồn tại.', 409);
+            $session->setFlashdata('error', 'Mã lớp này đã tồn tại.');
+            return redirect()->back()->withInput();
         }
 
-        // 2.3. Transaction Insert (Lớp + Lịch)
+        // Transaction Insert
         $this->db->transStart();
 
-        // Insert Class
         $classId = $this->classModel->insert([
             'class_code'  => $data['class_id'],
             'subject_id'  => $data['subject_id'],
             'teacher_id'  => $data['teacher_id'],
-            'semester_id' => 1, // Mặc định HK1 (logic cũ), nên sửa lại lấy động sau này
+            'semester_id' => 1,
             'format'      => $data['format'],
             'max_students'=> 60,
             'is_locked'   => 0
         ]);
 
-        // Insert Schedule
         $this->scheduleModel->insert([
             'class_id'    => $classId,
             'day_of_week' => $dayInt,
@@ -102,43 +136,76 @@ class ClassController extends BaseController
         $this->db->transComplete();
 
         if ($this->db->transStatus() === false) {
-            return $this->failServerError('Lỗi hệ thống khi thêm lớp.');
+            $session->setFlashdata('error', 'Lỗi hệ thống khi thêm lớp.');
+            return redirect()->back()->withInput();
         }
 
-        return $this->respondCreated(['success' => true, 'message' => 'Thêm lớp học thành công!']);
+        $session->setFlashdata('success', 'Thêm lớp học thành công!');
+        return redirect()->to('/manager_classes.html');
     }
 
-    // 3. API: Sửa lớp (Thay thế manager_class_edit.php)
-    // URL: backend/manager_class_edit.php (POST)
-    public function update()
+    // 4. Form sửa lớp - GET
+    public function editForm($id)
     {
-        $input = $this->request->getJSON(true);
-        $data = $input['data'] ?? [];
-        $id = $input['id'] ?? 0;
+        $subjectModel = new SubjectModel();
+        $teacherModel = new TeacherModel();
+        
+        $class = $this->classModel->select('classes.*, schedules.day_of_week, schedules.start_time, schedules.end_time, schedules.room as class_room')
+                                  ->join('schedules', 'classes.id = schedules.class_id', 'left')
+                                  ->find($id);
 
-        if (!$id) return $this->fail('Thiếu ID lớp học.', 400);
+        if (!$class) {
+            session()->setFlashdata('error', 'Không tìm thấy lớp học.');
+            return redirect()->to('/manager_classes.html');
+        }
+        
+        $class['day_of_week_text'] = $this->convertBitToDay($class['day_of_week']);
+        $class['schedule_time'] = substr($class['start_time'] ?? '00:00', 0, 5) . '-' . substr($class['end_time'] ?? '00:00', 0, 5);
 
-        // Chuyển đổi dữ liệu
+        $viewData = [
+            'class' => $class,
+            'subjects' => $subjectModel->findAll(),
+            'teachers' => $teacherModel->findAll()
+        ];
+        
+        return view('manager_class_edit', $viewData);
+    }
+
+    // 5. Xử lý sửa lớp - POST
+    public function update($id)
+    {
+        $session = session();
+        
+        $data = [
+            'class_id' => $this->request->getPost('class_id'),
+            'subject_id' => $this->request->getPost('subject_id'),
+            'teacher_id' => $this->request->getPost('teacher_id'),
+            'class_room' => $this->request->getPost('class_room'),
+            'day_of_week' => $this->request->getPost('day_of_week'),
+            'schedule_time' => $this->request->getPost('schedule_time'),
+            'format' => $this->request->getPost('format')
+        ];
+
         $dayInt = $this->convertDayToBit($data['day_of_week']);
         $times = explode('-', $data['schedule_time']);
 
-        // 3.1. Kiểm tra trùng phòng (Trừ chính lớp này ra)
+        // Kiểm tra trùng phòng (trừ chính lớp này)
         $conflict = $this->scheduleModel->checkRoomConflict(
             $data['class_room'], 
             $dayInt, 
             $times[0], 
             $times[1],
-            $id // Exclude ID hiện tại
+            $id
         );
 
         if ($conflict) {
-            return $this->fail("Xung đột phòng học! Phòng '{$data['class_room']}' trùng lịch với lớp {$conflict->class_code}.", 409);
+            $session->setFlashdata('error', "Xung đột phòng học! Phòng '{$data['class_room']}' trùng lịch với lớp {$conflict->class_code}.");
+            return redirect()->back()->withInput();
         }
 
-        // 3.2. Transaction Update
+        // Transaction Update
         $this->db->transStart();
 
-        // Update Class
         $this->classModel->update($id, [
             'class_code' => $data['class_id'],
             'subject_id' => $data['subject_id'],
@@ -146,8 +213,6 @@ class ClassController extends BaseController
             'format'     => $data['format']
         ]);
 
-        // Update Schedule (Giả sử 1 lớp 1 lịch như DB cũ)
-        // Tìm lịch cũ để update, hoặc xóa đi thêm lại. Ở đây dùng update based on class_id
         $this->scheduleModel->where('class_id', $id)->set([
             'day_of_week' => $dayInt,
             'start_time'  => $times[0],
@@ -157,97 +222,88 @@ class ClassController extends BaseController
 
         $this->db->transComplete();
 
-        return $this->respond(['success' => true, 'message' => 'Cập nhật lớp học thành công!']);
+        $session->setFlashdata('success', 'Cập nhật lớp học thành công!');
+        return redirect()->to('/manager_classes.html');
     }
 
-    // 4. API: Lấy thông tin 1 lớp để sửa (Thay thế manager_class_get.php)
-    public function show()
+    // 6. Xóa lớp - POST
+    public function delete($id)
     {
-        $id = $this->request->getGet('id');
+        $session = session();
         
-        // Cần join bảng schedules để lấy lịch
-        $class = $this->classModel->select('classes.*, schedules.day_of_week, schedules.start_time, schedules.end_time, schedules.room')
-                                  ->join('schedules', 'classes.id = schedules.class_id', 'left')
-                                  ->find($id);
-
-        if (!$class) return $this->failNotFound('Không tìm thấy lớp học.');
-        
-        // Convert ngược day_of_week (2 -> "Thứ Hai") cho Frontend binding
-        $class['day_of_week_text'] = $this->convertBitToDay($class['day_of_week']);
-        // Tạo string schedule_time "07:30-11:30" để match value select box
-        $class['schedule_time'] = substr($class['start_time'], 0, 5) . '-' . substr($class['end_time'], 0, 5);
-
-        return $this->respond(['success' => true, 'data' => $class]);
-    }
-
-    // 5. API: Xóa lớp (Thay thế manager_class_delete.php)
-    public function delete()
-    {
-        $input = $this->request->getJSON(true);
-        $id = $input['id'] ?? 0;
-
         if ($this->classModel->delete($id)) {
-            return $this->respondDeleted(['success' => true, 'message' => 'Đã xóa lớp học.']);
+            $session->setFlashdata('success', 'Đã xóa lớp học.');
+        } else {
+            $session->setFlashdata('error', 'Không tìm thấy lớp để xóa.');
         }
-        return $this->failNotFound('Không tìm thấy lớp để xóa.');
+        
+        return redirect()->to('/manager_classes.html');
     }
 
-    // 6. API: Khóa/Mở khóa lớp (Thay thế manager_class_lock.php)
-    public function toggleLock()
+    // 7. Khóa/Mở khóa lớp - POST
+    public function toggleLock($id)
     {
-        $input = $this->request->getJSON(true);
-        $id = $input['id'] ?? 0;
+        $session = session();
         
         $class = $this->classModel->find($id);
-        if (!$class) return $this->failNotFound('Lớp không tồn tại.');
+        if (!$class) {
+            $session->setFlashdata('error', 'Lớp không tồn tại.');
+            return redirect()->to('/manager_classes.html');
+        }
 
-        // Đảo ngược trạng thái: 0 -> 1, 1 -> 0
         $newStatus = $class['is_locked'] == 1 ? 0 : 1;
         $this->classModel->update($id, ['is_locked' => $newStatus]);
         
         $msg = $newStatus ? 'Đã KHÓA lớp học.' : 'Đã MỞ KHÓA lớp học.';
-        return $this->respond(['success' => true, 'message' => $msg]);
+        $session->setFlashdata('success', $msg);
+        
+        return redirect()->to('/manager_classes.html');
     }
 
-    // 7. API: Chi tiết lớp học + Danh sách sinh viên (Thay manager_class_detail.php)
-    public function detail()
+    // 8. Chi tiết lớp - GET
+    public function detail($id)
     {
-        $id = $this->request->getGet('id');
+        $classBuilder = $this->classModel->asArray()
+            ->select('classes.*, classes.id as class_id, 
+                      subjects.name as subject_name, subjects.subject_code,
+                      semesters.name as semester_name, 
+                      CONCAT(teachers.first_name, " ", teachers.last_name) as teacher_name,
+                      schedules.room, schedules.start_time, schedules.end_time, schedules.day_of_week')
+            ->join('subjects', 'classes.subject_id = subjects.id', 'left')
+            ->join('teachers', 'classes.teacher_id = teachers.id', 'left')
+            ->join('semesters', 'classes.semester_id = semesters.id', 'left')
+            ->join('schedules', 'classes.id = schedules.class_id', 'left')
+            ->where('classes.id', $id);
+
+        $classInfo = $classBuilder->first();
+
+        if (!$classInfo) {
+            session()->setFlashdata('error', 'Không tìm thấy lớp học.');
+            return redirect()->to('/manager_classes.html');
+        }
+
+        $classInfo['day_of_week'] = $this->convertBitToDay($classInfo['day_of_week']);
+        $classInfo['schedule_time'] = substr($classInfo['start_time'] ?? '00:00',0,5) . '-' . substr($classInfo['end_time'] ?? '00:00',0,5);
         
-        // Lấy thông tin lớp
-        $class = $this->classModel->getClassesWithDetails(null, null); 
-        // Note: Hàm getClassesWithDetails trả về mảng tất cả, ta cần filter lại hoặc viết hàm findWithDetails
-        // Để nhanh, ta dùng query builder trực tiếp tại đây cho tối ưu 1 record:
-        
-        $classInfo = $this->classModel->select('classes.*, subjects.name as subject_name, semesters.name as semester_name, 
-                                                CONCAT(teachers.first_name, " ", teachers.last_name) as teacher_name,
-                                                schedules.room, schedules.start_time, schedules.end_time, schedules.day_of_week')
-                                      ->join('subjects', 'classes.subject_id = subjects.id')
-                                      ->join('teachers', 'classes.teacher_id = teachers.id')
-                                      ->join('semesters', 'classes.semester_id = semesters.id')
-                                      ->join('schedules', 'classes.id = schedules.class_id')
-                                      ->find($id);
-
-        if (!$classInfo) return $this->failNotFound('Không tìm thấy lớp.');
-
-        // Format lại dữ liệu hiển thị
-        $classInfo['schedule_display'] = $this->convertBitToDay($classInfo['day_of_week']) . ' (' . substr($classInfo['start_time'],0,5) . '-' . substr($classInfo['end_time'],0,5) . ')';
-
-        // Lấy danh sách sinh viên (Dùng EnrollmentModel)
+        // Lấy danh sách sinh viên
         $enrollmentModel = new \App\Models\EnrollmentModel();
-        $students = $enrollmentModel->getStudentsInClass($id);
+        $students = $enrollmentModel->select('enrollments.*, 
+                                             enrollments.midterm_score, enrollments.final_score, enrollments.diligence_score,
+                                             students.student_code, students.name as student_name, students.name')
+                                    ->join('students', 'enrollments.student_id = students.id')
+                                    ->where('enrollments.class_id', $id)
+                                    ->orderBy('students.name', 'ASC')
+                                    ->findAll();
 
-        return $this->respond([
-            'success' => true,
-            'data' => [
-                'class_info' => $classInfo,
-                'students' => $students
-            ]
-        ]);
+        $viewData = [
+            'class' => $classInfo,
+            'students' => $students
+        ];
+
+        return view('manager_class_detail', $viewData);
     }
 
-    // --- Helper Functions (Private) ---
-
+    // Helper Functions
     private function convertDayToBit($text) {
         $map = [
             'Thứ Hai' => 2, 'Thứ Ba' => 3, 'Thứ Tư' => 4, 

@@ -3,12 +3,9 @@
 namespace App\Controllers\Student;
 
 use App\Controllers\BaseController;
-use CodeIgniter\API\ResponseTrait;
 
 class StudentController extends BaseController
 {
-    use ResponseTrait;
-
     protected $db;
 
     public function __construct()
@@ -16,18 +13,32 @@ class StudentController extends BaseController
         $this->db = \Config\Database::connect();
     }
 
-    // API 1: Lấy danh sách Lớp học, Điểm số & Lịch học (Thay get_student_classes.php)
-    // URL: backend/student/classes
-    public function getClasses()
+    // 1. Xem thông tin cá nhân
+    public function information()
     {
         $userId = session()->get('user_id');
-        if (!$userId) return $this->failUnauthorized('Chưa đăng nhập');
-
-        // 1. Lấy ID sinh viên từ User ID
+        
         $student = $this->db->table('students')->where('user_id', $userId)->get()->getRow();
-        if (!$student) return $this->failNotFound('Không tìm thấy thông tin sinh viên liên kết với tài khoản này.');
+        
+        $viewData = [
+            'student' => $student
+        ];
+        
+        return view('information', $viewData);
+    }
 
-        // 2. Query dữ liệu (Join 5 bảng như file cũ)
+    // 2. Xem lịch học & điểm
+    public function classes()
+    {
+        $userId = session()->get('user_id');
+        
+        $student = $this->db->table('students')->where('user_id', $userId)->get()->getRow();
+        
+        if (!$student) {
+            session()->setFlashdata('error', 'Không tìm thấy thông tin sinh viên.');
+            return redirect()->to('/index.html');
+        }
+
         $builder = $this->db->table('enrollments e')
             ->select("
                 c.class_code, 
@@ -37,7 +48,7 @@ class StudentController extends BaseController
                 sch.day_of_week, 
                 sch.start_time, 
                 sch.end_time, 
-                sch.room,
+                sch.room AS class_room,
                 e.midterm_score, 
                 e.final_score,
                 e.diligence_score
@@ -45,33 +56,70 @@ class StudentController extends BaseController
             ->join('classes c', 'e.class_id = c.id')
             ->join('subjects s', 'c.subject_id = s.id')
             ->join('teachers t', 'c.teacher_id = t.id', 'left')
-            ->join('schedules sch', 'c.id = sch.class_id', 'left') // Giả định 1 lớp 1 lịch
+            ->join('schedules sch', 'c.id = sch.class_id', 'left')
             ->where('e.student_id', $student->id)
             ->orderBy('sch.day_of_week', 'ASC');
 
         $classes = $builder->get()->getResultArray();
 
-        // 3. Format dữ liệu (Map thứ từ số sang chữ)
         $days = [2=>'Thứ Hai', 3=>'Thứ Ba', 4=>'Thứ Tư', 5=>'Thứ Năm', 6=>'Thứ Sáu', 7=>'Thứ Bảy', 8=>'Chủ Nhật'];
         
         foreach ($classes as &$cls) {
-            $cls['day_text'] = $days[$cls['day_of_week']] ?? 'Chủ Nhật';
-            // Tạo chuỗi hiển thị lịch
-            $cls['schedule_display'] = $cls['day_text'] . ' (' . substr($cls['start_time'], 0, 5) . '-' . substr($cls['end_time'], 0, 5) . ')';
+            // Convert day_of_week from TINYINT to text for view comparison
+            $cls['day_of_week'] = $days[$cls['day_of_week']] ?? 'Chủ Nhật';
+            // Create schedule_time in format HH:MM-HH:MM for view comparison
+            $cls['schedule_time'] = substr($cls['start_time'], 0, 5) . '-' . substr($cls['end_time'], 0, 5);
         }
 
-        return $this->respond(['success' => true, 'data' => $classes]);
+        $viewData = [
+            'classes' => $classes
+        ];
+        
+        return view('class_schedule', $viewData);
     }
 
-    // API 2: Lấy lịch thi (Thay exam_schedule.php)
-    // URL: backend/student/exams
-    public function getExamSchedule()
+    // 3. Xem điểm
+    public function grades()
     {
         $userId = session()->get('user_id');
-        if (!$userId) return $this->failUnauthorized('Chưa đăng nhập');
+        
+        $student = $this->db->table('students')->where('user_id', $userId)->get()->getRow();
+        
+        if (!$student) {
+            session()->setFlashdata('error', 'Không tìm thấy thông tin sinh viên.');
+            return redirect()->to('/index.html');
+        }
 
-        // Query trực tiếp từ bảng exams join qua enrollments
-        // Logic: Sinh viên -> Enrollments -> Class -> Exam
+        $builder = $this->db->table('enrollments e')
+            ->select("
+                c.class_code, 
+                s.name AS subject_name,
+                s.credits,
+                c.format, 
+                CONCAT(t.first_name, ' ', t.last_name) AS teacher_name,
+                e.midterm_score, 
+                e.final_score,
+                e.diligence_score
+            ")
+            ->join('classes c', 'e.class_id = c.id')
+            ->join('subjects s', 'c.subject_id = s.id')
+            ->join('teachers t', 'c.teacher_id = t.id', 'left')
+            ->where('e.student_id', $student->id);
+
+        $classes = $builder->get()->getResultArray();
+
+        $viewData = [
+            'classes' => $classes
+        ];
+        
+        return view('grades', $viewData);
+    }
+
+    // 4. Xem lịch thi
+    public function exams()
+    {
+        $userId = session()->get('user_id');
+
         $sql = "SELECT 
                     s.name AS subject_name,
                     s.subject_code,
@@ -93,6 +141,10 @@ class StudentController extends BaseController
         $query = $this->db->query($sql, [$userId]);
         $exams = $query->getResultArray();
 
-        return $this->respond(['success' => true, 'data' => $exams]);
+        $viewData = [
+            'exams' => $exams
+        ];
+        
+        return view('exam_schedule', $viewData);
     }
 }

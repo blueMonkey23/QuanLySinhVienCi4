@@ -10,22 +10,28 @@ class AuthController extends BaseController
     public function login()
     {
         $request = service('request');
-        $input = $request->getJSON(true); // Lấy JSON từ JS gửi lên
-
-        // Fallback nếu JS gửi dạng form-data hoặc raw
-        $data = $input['data'] ?? $request->getPost('data'); 
+        $session = session();
         
-        $email = $data['email'] ?? '';
-        $password = $data['password'] ?? '';
+        // Nếu là GET request, hiển thị form login
+        if ($request->getMethod() === 'get') {
+            return view('login');
+        }
+        
+        // POST request - Xử lý đăng nhập
+        $email = $request->getPost('email');
+        $password = $request->getPost('password');
+
+        // Validation
+        if (empty($email) || empty($password)) {
+            $session->setFlashdata('error', 'Vui lòng điền đầy đủ thông tin!');
+            return redirect()->to('/login.html')->withInput();
+        }
 
         $userModel = new UserModel();
         $user = $userModel->where('email', $email)->first();
 
         if ($user && password_verify($password, $user['password_hash'])) {
             // Đăng nhập thành công -> Lưu Session
-            $session = session();
-            
-            // Lấy role (Dựa trên hàm getUserRole ta đã viết ở Model bước trước)
             $role = $userModel->getUserRole($user['id']); 
             
             $session_data = [
@@ -35,57 +41,68 @@ class AuthController extends BaseController
                 'logged_in'  => true
             ];
             $session->set($session_data);
-
-            return $this->response->setJSON([
-                'success' => true,
-                'message' => 'Đăng nhập thành công!',
-                'data' => [
-                    'user_id' => $user['id'],
-                    'role'    => $role,
-                    'redirect'=> ($role === 'student') ? 'index.html' : 'manager_dashboard.html'
-                ]
-            ]);
+            
+            $session->setFlashdata('success', 'Đăng nhập thành công!');
+            
+            // Redirect theo role
+            $redirectUrl = ($role === 'student') ? '/index.html' : '/manager_dashboard.html';
+            return redirect()->to($redirectUrl);
         }
 
-        return $this->response->setJSON([
-            'success' => false,
-            'message' => 'Email hoặc mật khẩu không chính xác.'
-        ]);
+        $session->setFlashdata('error', 'Email hoặc mật khẩu không chính xác.');
+        return redirect()->to('/login.html')->withInput();
     }
 
     public function register()
     {
         $request = service('request');
-        $input = $request->getJSON(true);
-        $data = $input['data'] ?? $request->getPost('data');
+        $session = session();
+        
+        // Nếu là GET request, hiển thị form register
+        if ($request->getMethod() === 'get') {
+            return view('register');
+        }
+        
+        // POST request - Xử lý đăng ký
+        $name = $request->getPost('fullname');
+        $email = $request->getPost('email');
+        $studentId = $request->getPost('student_id');
+        $password = $request->getPost('password');
+        $confirmPassword = $request->getPost('confirm_password');
 
-        if (empty($data['email']) || empty($data['password']) || empty($data['student_id'])) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Vui lòng điền đầy đủ thông tin.'
-            ]);
+        // Validation
+        if (empty($email) || empty($password) || empty($studentId) || empty($name)) {
+            $session->setFlashdata('error', 'Vui lòng điền đầy đủ thông tin.');
+            return redirect()->to('/register.html')->withInput();
+        }
+        
+        if ($password !== $confirmPassword) {
+            $session->setFlashdata('error', 'Mật khẩu xác nhận không khớp.');
+            return redirect()->to('/register.html')->withInput();
         }
 
         $userModel = new UserModel();
-        $studentModel = new \App\Models\StudentModel(); // Gọi model sinh viên
+        $studentModel = new \App\Models\StudentModel();
         $db = \Config\Database::connect();
 
-        // 1. Kiểm tra Email hoặc Mã SV đã tồn tại chưa
-        if ($userModel->where('email', $data['email'])->first()) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Email này đã được sử dụng.']);
+        // Kiểm tra Email hoặc Mã SV đã tồn tại chưa
+        if ($userModel->where('email', $email)->first()) {
+            $session->setFlashdata('error', 'Email này đã được sử dụng.');
+            return redirect()->to('/register.html')->withInput();
         }
-        if ($studentModel->where('student_code', $data['student_id'])->first()) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Mã sinh viên này đã tồn tại.']);
+        if ($studentModel->where('student_code', $studentId)->first()) {
+            $session->setFlashdata('error', 'Mã sinh viên này đã tồn tại.');
+            return redirect()->to('/register.html')->withInput();
         }
 
-        // 2. Tạo tài khoản (Transaction)
+        // Tạo tài khoản (Transaction)
         $db->transStart();
 
         // Tạo User
         $userId = $userModel->insert([
-            'email' => $data['email'],
-            'password_hash' => password_hash($data['password'], PASSWORD_BCRYPT),
-            'name'  => $data['name'] ?? 'Sinh viên'
+            'email' => $email,
+            'password_hash' => password_hash($password, PASSWORD_BCRYPT),
+            'name'  => $name
         ]);
 
         // Gán Role Student (ID=4)
@@ -94,32 +111,29 @@ class AuthController extends BaseController
         // Tạo Student Profile
         $studentModel->insert([
             'user_id' => $userId,
-            'student_code' => $data['student_id'],
-            'name' => $data['name'],
-            'email' => $data['email'],
+            'student_code' => $studentId,
+            'name' => $name,
+            'email' => $email,
             'status' => 1
         ]);
 
         $db->transComplete();
 
         if ($db->transStatus() === false) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Lỗi hệ thống, không thể tạo tài khoản.']);
+            $session->setFlashdata('error', 'Lỗi hệ thống, không thể tạo tài khoản.');
+            return redirect()->to('/register.html')->withInput();
         }
 
-        return $this->response->setJSON([
-            'success' => true, 
-            'message' => 'Đăng ký thành công! Bạn có thể đăng nhập ngay.'
-        ]);
+        $session->setFlashdata('success', 'Đăng ký thành công! Bạn có thể đăng nhập ngay.');
+        return redirect()->to('/login.html');
     }
     
     public function logout()
     {
         $session = session();
         $session->destroy();
-        return $this->response->setJSON([
-            'success' => true,
-            'message' => 'Đăng xuất thành công!'
-        ]);
+        $session->setFlashdata('success', 'Đăng xuất thành công!');
+        return redirect()->to('/login.html');
     }
 
     public function status()
