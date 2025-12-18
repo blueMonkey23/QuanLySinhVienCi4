@@ -27,21 +27,7 @@
     </div>
   </nav>
 
-  <aside id="sidebar" class="sidebar" aria-hidden="false">
-    <div class="px-3">
-      <div class="mb-3 px-2">
-        <img src="assets/images/hou-logo.png" alt="logo" style="width:44px;height:44px;border-radius:8px;margin-right:.6rem;vertical-align:middle">
-        <span style="vertical-align:middle;font-weight:700">Hệ thống</span>
-      </div>
-      <nav class="menu">
-        <a href="index.html" class="active"><i class="bi bi-house me-2"></i> Trang chủ</a>
-        <a href="information.html"><i class="bi bi-person-lines-fill me-2"></i> Thông tin sinh viên</a>
-        <a href="grades.html"><i class="bi bi-book me-2"></i> Xem điểm học tập</a>
-        <a href="class_schedule.html"><i class="bi bi-journal-text me-2"></i> Xem lịch học</a>
-        <a href="exam_schedule.html"><i class="bi bi-calendar me-2"></i> Xem lịch thi</a>
-      </nav>
-    </div>
-  </aside>
+  <?php $activePage = 'home'; include(APPPATH . 'Views/partials/student_sidebar.php'); ?>
 
   <div id="overlay" class="overlay"></div>
 

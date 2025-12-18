@@ -21,23 +21,7 @@
     </div>
   </nav>
 
-  <aside id="sidebar" class="sidebar" aria-hidden="false">
-    <div class="px-3">
-      <div class="mb-3 px-2">
-        <img src="assets/images/hou-logo.png" alt="logo" style="width:44px;height:44px;border-radius:8px;margin-right:.6rem;vertical-align:middle">
-        <span style="vertical-align:middle;font-weight:700">Hệ thống Quản lý</span>
-      </div>
-      <nav class="menu">
-        <a href="manager_dashboard.html"><i class="bi bi-house me-2"></i> Trang chủ</a>
-        <a href="manager_classes.html" class="active"><i class="bi bi-easel me-2"></i> Quản lý Lớp học</a>
-        <a href="manager_students.html"><i class="bi bi-people me-2"></i> Quản lý Sinh viên</a>
-        <a href="manager_grades.html"><i class="bi bi-journal-check me-2"></i> Quản lý Điểm số</a>
-        <a href="manager_attendance.html"><i class="bi bi-person-check me-2"></i> Điểm danh</a>
-        <a href="manager_assignments.html"><i class="bi bi-file-earmark-text me-2"></i> Quản lý Bài tập</a>
-        <a href="manager_schedule.html"><i class="bi bi-calendar-event me-2"></i> Lịch giảng dạy</a>
-      </nav>
-    </div>
-  </aside>
+  <?php $activePage = 'classes'; include(APPPATH . 'Views/partials/manager_sidebar.php'); ?>
 
   <div id="overlay" class="overlay"></div>
 
@@ -47,43 +31,61 @@
       <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h2 class="m-0 fw-bold">Chi tiết Lớp học</h2>
-            <div class="text-muted" id="class_code_display">Đang tải...</div>
+            <div class="text-muted"><?= esc($class['class_code']) ?></div>
         </div>
-        <a href="manager_classes.html" class="btn btn-outline-secondary">
+        <a href="<?= base_url('manager_classes.html') ?>" class="btn btn-outline-secondary">
           <i class="bi bi-arrow-left me-2"></i> Quay lại
         </a>
       </div>
 
+      <?php if (session()->getFlashdata('success')): ?>
+        <div class="alert alert-success alert-dismissible fade show">
+          <?= session()->getFlashdata('success') ?>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <?php endif; ?>
+      
+      <?php if (session()->getFlashdata('error')): ?>
+        <div class="alert alert-danger alert-dismissible fade show">
+          <?= session()->getFlashdata('error') ?>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <?php endif; ?>
+
       <div class="card-panel mb-3">
         <div class="d-flex justify-content-between align-items-center mb-3">
              <h5 class="mb-0">Thông tin chung</h5>
-             <span id="status_display"></span>
+             <?php if ($class['is_locked'] == 1): ?>
+                <span class="badge bg-danger">Đã khóa</span>
+             <?php else: ?>
+                <span class="badge bg-success">Hoạt động</span>
+             <?php endif; ?>
         </div>
        
         <div class="row g-3">
             <div class="col-md-4">
                 <div class="small text-uppercase text-secondary">Môn học</div>
-                <div class="fw-semibold" id="subject_name">...</div>
+                <div class="fw-semibold"><?= esc($class['subject_name']) ?></div>
             </div>
             <div class="col-md-4">
                 <div class="small text-uppercase text-secondary">Giảng viên</div>
-                <div class="fw-semibold" id="teacher_name">...</div>
+                <div class="fw-semibold"><?= esc($class['teacher_name'] ?? 'Chưa có') ?></div>
             </div>
             <div class="col-md-4">
                 <div class="small text-uppercase text-secondary">Học kỳ</div>
-                <div class="fw-semibold" id="semester_name">...</div>
+                <div class="fw-semibold"><?= esc($class['semester_name'] ?? 'HK1') ?></div>
             </div>
             <div class="col-md-4">
                 <div class="small text-uppercase text-secondary">Lịch học</div>
-                <div class="fw-semibold" id="schedule_display">...</div>
+                <div class="fw-semibold"><?= esc($class['day_of_week']) ?> - <?= esc($class['schedule_time']) ?></div>
             </div>
             <div class="col-md-4">
                 <div class="small text-uppercase text-secondary">Phòng học</div>
-                <div class="fw-semibold" id="room_display">...</div>
+                <div class="fw-semibold"><?= esc($class['room']) ?></div>
             </div>
             <div class="col-md-4">
                 <div class="small text-uppercase text-secondary">Sĩ số</div>
-                <div class="fw-semibold"><span id="current_students_display">0</span> / <span id="max_students_display">0</span></div>
+                <div class="fw-semibold"><?= count($students) ?> / <?= esc($class['max_students'] ?? 60) ?></div>
             </div>
         </div>
       </div>
@@ -94,7 +96,8 @@
         </div>
 
         <div class="table-responsive mb-3">
-          <form id="grades_form">
+          <form method="POST" action="<?= base_url('manager_class_grades/' . $class['id']) ?>">
+              <?= csrf_field() ?>
               <table class="table table-hover table-bordered align-middle">
                 <thead class="table-light">
                   <tr>
@@ -107,39 +110,64 @@
                     <th style="width: 80px;" class="text-center">Xóa</th>
                   </tr>
                 </thead>
-                <tbody id="student_grades_tbody">
-                    <tr><td colspan="7" class="text-center p-4">Đang tải dữ liệu...</td></tr>
+                <tbody>
+                    <?php if (empty($students)): ?>
+                    <tr><td colspan="7" class="text-center p-4">Chưa có sinh viên nào.</td></tr>
+                    <?php else: ?>
+                        <?php foreach ($students as $idx => $student): ?>
+                        <tr>
+                            <td class="text-center"><?= $idx + 1 ?></td>
+                            <td><strong><?= esc($student['student_code']) ?></strong></td>
+                            <td><?= esc($student['student_name']) ?></td>
+                            <input type="hidden" name="enrollment_id[<?= $idx ?>]" value="<?= $student['id'] ?>">
+                            <td><input type="number" class="form-control form-control-sm" name="diligence_score[<?= $idx ?>]" value="<?= esc($student['diligence_score'] ?? '') ?>" min="0" max="10" step="0.1"></td>
+                            <td><input type="number" class="form-control form-control-sm" name="midterm_score[<?= $idx ?>]" value="<?= esc($student['midterm_score'] ?? '') ?>" min="0" max="10" step="0.1"></td>
+                            <td><input type="number" class="form-control form-control-sm" name="final_score[<?= $idx ?>]" value="<?= esc($student['final_score'] ?? '') ?>" min="0" max="10" step="0.1"></td>
+                            <td class="text-center">
+                                <a href="<?= base_url('manager_class_remove_student/' . $class['id'] . '/' . $student['student_id']) ?>" class="btn btn-sm btn-danger" onclick="return confirm('Xóa sinh viên này khỏi lớp?')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </tbody>
               </table>
+              
+              <?php if (!empty($students)): ?>
+              <div class="d-flex justify-content-end mt-3">
+                  <button type="submit" class="btn btn-primary">
+                      <i class="bi bi-floppy-fill me-1"></i> Lưu tất cả điểm
+                  </button>
+              </div>
+              <?php endif; ?>
           </form>
         </div>
 
         <div class="row align-items-center p-3 bg-light rounded border">
-            <div class="col-md-7 d-flex gap-2 align-items-center">
-                <form id="enrollment_form" class="d-flex gap-2 w-100">
-                    <input type="text" class="form-control" id="student_code_input" placeholder="Nhập Mã SV để thêm (VD: 24A1...)" required>
-                    <button type="submit" class="btn btn-success text-nowrap" id="add_student_btn">
+            <div class="col-md-12">
+                <form method="POST" action="<?= base_url('manager_class_add_student/' . $class['id']) ?>" class="d-flex gap-2">
+                    <?= csrf_field() ?>
+                    <input type="text" class="form-control" name="student_code" placeholder="Nhập Mã SV để thêm (VD: 24A1...)" required>
+                    <button type="submit" class="btn btn-success text-nowrap">
                         <i class="bi bi-person-plus-fill me-1"></i> Thêm
                     </button>
                 </form>
             </div>
-
-            <div class="col-md-5 d-flex justify-content-end align-items-center gap-3">
-                <div id="action_message" class="small fw-bold"></div>
-                <button type="button" class="btn btn-primary text-nowrap" id="save_grades_btn">
-                    <i class="bi bi-floppy-fill me-1"></i> Lưu tất cả điểm
-                </button>
-            </div>
         </div>
-        <div class="text-danger small mt-2" id="grades_error_message"></div>
 
       </div>
 
     </div>
   </main>
-<script src="<?= base_url('assets/js/config.js') ?>"></script>
+<script>
+const CONFIG = {
+  API_BASE: '<?= base_url() ?>',
+  USER_ROLE: <?= json_encode(session()->get('role_id') ?? 0) ?>,
+  USER_NAME: <?= json_encode(session()->get('name') ?? 'Guest') ?>
+};
+</script>
 <script src="<?= base_url('assets/js/script.js') ?>"></script>
-<script src="<?= base_url('assets/js/manager_class_detail.js') ?>"></script> 
 <script src="<?= base_url('assets/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
 
 </body>

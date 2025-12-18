@@ -26,21 +26,7 @@
     </div>
   </nav>
 
-  <aside id="sidebar" class="sidebar" aria-hidden="false">
-    <div class="px-3">
-      <div class="mb-3 px-2">
-        <img src="assets/images/hou-logo.png" alt="logo" style="width:44px;height:44px;border-radius:8px;margin-right:.6rem;vertical-align:middle">
-        <span style="vertical-align:middle;font-weight:700">Hệ thống</span>
-      </div>
-      <nav class="menu">
-        <a href="index.html"><i class="bi bi-house me-2"></i> Trang chủ</a>
-        <a href="information.html"><i class="bi bi-person-lines-fill me-2"></i> Thông tin sinh viên</a>
-        <a href="grades.html"><i class="bi bi-book me-2"></i> Xem điểm học tập</a>
-        <a href="class_schedule.html" class="active"><i class="bi bi-journal-text me-2"></i> Xem lịch học</a>
-        <a href="exam_schedule.html"><i class="bi bi-calendar me-2"></i> Xem lịch thi</a>
-      </nav>
-    </div>
-  </aside>
+  <?php $activePage = 'class_schedule'; include(APPPATH . 'Views/partials/student_sidebar.php'); ?>
 
   <div id="overlay" class="overlay"></div>
 
@@ -82,53 +68,47 @@
                   <div class="cell header-cell">Chủ nhật</div>
                 </div>
 
-                <!-- sáng -->
+                <?php 
+                $days = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật'];
+                $shifts = [
+                  'Sáng' => '07:30–11:30',
+                  'Chiều' => '12:45–16:00',
+                  'Tối' => '18:30–21:30'
+                ];
+                
+                foreach ($shifts as $shiftName => $shiftTime):
+                  // Determine which time range matches this shift
+                  $shiftRange = '';
+                  if ($shiftName == 'Sáng') $shiftRange = '07:30-11:30';
+                  elseif ($shiftName == 'Chiều') $shiftRange = '12:45-16:00';
+                  elseif ($shiftName == 'Tối') $shiftRange = '18:30-21:30';
+                ?>
                 <div class="schedule-row">
-                  <div class="cell shift-col"><strong>Sáng</strong><div class="tiny muted">07:30–11:30</div></div>
-                  <div class="cell shift-cell text-center">Thiết kế trải nghiệm người dùng<br>
-                                                          Mã lớp: K24-7E1016.22-1.2526-8.8_LT<br>
-                                                          GV: Dương Chí Bằng<br>
-                                                          Phòng: KGĐ FITHOU-P52<br>
-                                                          Hình thức học: Trực tiếp</div>
-                  <div class="cell shift-cell"> — </div>
-                  <div class="cell shift-cell"> — </div>
-                  <div class="cell shift-cell"> — </div>
-                  <div class="cell shift-cell"> — </div>
-                  <div class="cell shift-cell"> — </div>
-                  <div class="cell shift-cell"> — </div>
+                  <div class="cell shift-col"><strong><?= $shiftName ?></strong><div class="tiny muted"><?= $shiftTime ?></div></div>
+                  <?php foreach ($days as $day): ?>
+                    <div class="cell shift-cell">
+                      <?php 
+                      $hasClass = false;
+                      foreach ($classes as $class):
+                        if ($class['day_of_week'] == $day && $class['schedule_time'] == $shiftRange):
+                          $hasClass = true;
+                      ?>
+                        <div class="text-center">
+                          <?= esc($class['subject_name']) ?><br>
+                          Mã lớp: <?= esc($class['class_code']) ?><br>
+                          GV: <?= esc($class['teacher_name'] ?? 'N/A') ?><br>
+                          Phòng: <?= esc($class['class_room']) ?><br>
+                          Hình thức học: <?= esc($class['format']) ?>
+                        </div>
+                      <?php 
+                        endif;
+                      endforeach;
+                      if (!$hasClass) echo ' — ';
+                      ?>
+                    </div>
+                  <?php endforeach; ?>
                 </div>
-
-                <!-- chiều -->
-                <div class="schedule-row">
-                  <div class="cell shift-col"><strong>Chiều</strong><div class="tiny muted">12:45–16:00</div></div>
-                  <div class="cell shift-cell" data-day="mon" data-shift="afternoon"> — </div>
-                  <div class="cell shift-cell" data-day="tue" data-shift="afternoon"> — </div>
-                  <div class="cell shift-cell" data-day="wed" data-shift="afternoon"> — </div>
-                  <div class="cell shift-cell text-center">Thiết kế trải nghiệm người dùng<br>
-                                                          Mã lớp: K24-7E1016.22-1.2526-8.8_LT<br>
-                                                          GV: Dương Chí Bằng<br>
-                                                          Phòng: KGĐ FITHOU-P52<br>
-                                                          Hình thức học: Trực tiếp</div>
-                  <div class="cell shift-cell" data-day="fri" data-shift="afternoon"> — </div>
-                  <div class="cell shift-cell" data-day="sat" data-shift="afternoon"> — </div>
-                  <div class="cell shift-cell" data-day="sun" data-shift="afternoon"> — </div>
-                </div>
-
-                <!-- tối -->
-                <div class="schedule-row">
-                  <div class="cell shift-col"><strong>Tối</strong><div class="tiny muted">18:30–21:30</div></div>
-                  <div class="cell shift-cell" data-day="mon" data-shift="evening"> — </div>
-                  <div class="cell shift-cell" data-day="tue" data-shift="evening"> — </div>
-                  <div class="cell shift-cell" data-day="wed" data-shift="evening"> — </div>
-                  <div class="cell shift-cell" data-day="thu" data-shift="evening"> — </div>
-                  <div class="cell shift-cell" data-day="fri" data-shift="evening"> — </div>
-                  <div class="cell shift-cell" data-day="sat" data-shift="evening"> — </div>
-                  <div class="cell shift-cell text-center">Thiết kế trải nghiệm người dùng<br>
-                                                          Mã lớp: K24-7E1016.22-1.2526-8.8_LT<br>
-                                                          GV: Dương Chí Bằng<br>
-                                                          Phòng: KGĐ FITHOU-P52<br>
-                                                          Hình thức học: Trực tiếp</div>
-                </div>
+                <?php endforeach; ?>
               </div>
             </div>
           </div>
@@ -136,7 +116,6 @@
       </div>
   </div>
 </main>
-<script src="<?= base_url('assets/js/config.js') ?>"></script>
 <script src="<?= base_url('assets/js/script.js') ?>"></script>
 <script src="<?= base_url('assets/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
 

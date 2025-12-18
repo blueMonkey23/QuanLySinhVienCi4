@@ -18,45 +18,42 @@
         <div class="me-3 text-end" id="authButtons"></div>
     </nav>
 
-    <aside id="sidebar" class="sidebar" aria-hidden="false">
-        <div class="px-3">
-        <div class="mb-3 px-2">
-            <img src="assets/images/hou-logo.png" alt="logo" style="width:44px;height:44px;border-radius:8px;margin-right:.6rem;vertical-align:middle">
-            <span style="vertical-align:middle;font-weight:700">Hệ thống Quản lý</span>
-        </div>
-        
-        <nav class="menu">
-            <a href="manager_dashboard.html"><i class="bi bi-house me-2"></i> Trang chủ</a>
-            <a href="manager_classes.html"><i class="bi bi-easel me-2"></i> Quản lý Lớp học</a>
-            <a href="manager_students.html" class="active"><i class="bi bi-people me-2"></i> Quản lý Sinh viên</a>
-            <a href="manager_grades.html"><i class="bi bi-journal-check me-2"></i> Quản lý Điểm số</a>
-            <a href="manager_attendance.html"><i class="bi bi-person-check me-2"></i> Điểm danh</a>
-            <a href="manager_assignments.html"><i class="bi bi-file-earmark-text me-2"></i> Quản lý Bài tập</a>
-            <a href="manager_schedule.html"><i class="bi bi-calendar-event me-2"></i> Lịch giảng dạy</a>
-        </nav>
-        </div>
-    </aside>
+    <?php $activePage = 'students'; include(APPPATH . 'Views/partials/manager_sidebar.php'); ?>
     <div id="overlay" class="overlay"></div>
 
     <main class="content">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h3 class="fw-bold text-primary">Danh sách Sinh viên</h3>
-                <button class="btn btn-primary" onclick="openModal()">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#studentModal">
                     <i class="bi bi-person-plus-fill me-2"></i> Thêm mới
                 </button>
             </div>
 
+            <?php if (session()->getFlashdata('success')): ?>
+              <div class="alert alert-success alert-dismissible fade show">
+                <?= session()->getFlashdata('success') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            <?php endif; ?>
+            
+            <?php if (session()->getFlashdata('error')): ?>
+              <div class="alert alert-danger alert-dismissible fade show">
+                <?= session()->getFlashdata('error') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            <?php endif; ?>
+
             <div class="card p-3 mb-3 shadow-sm border-0">
-                <div class="row">
+                <form method="GET" action="<?= base_url('manager_students.html') ?>" class="row">
                     <div class="col-md-6">
                         <div class="input-group">
                             <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                            <input type="text" id="searchStudent" class="form-control border-start-0" placeholder="Nhập tên hoặc mã sinh viên...">
-                            <button class="btn btn-primary" onclick="loadStudents()">Tìm kiếm</button>
+                            <input type="text" name="q" class="form-control border-start-0" value="<?= esc($keyword ?? '') ?>" placeholder="Nhập tên hoặc mã sinh viên...">
+                            <button type="submit" class="btn btn-primary">Tìm kiếm</button>
                         </div>
                     </div>
-                </div>
+                </form>
             </div>
 
             <div class="card shadow-sm border-0">
@@ -73,8 +70,41 @@
                                 <th class="text-center">Hành động</th>
                             </tr>
                         </thead>
-                        <tbody id="student-list-tbody">
-                            </tbody>
+                        <tbody>
+                            <?php if (empty($students)): ?>
+                            <tr>
+                                <td colspan="7" class="text-center p-4">Không tìm thấy sinh viên nào.</td>
+                            </tr>
+                            <?php else: ?>
+                                <?php foreach ($students as $student): ?>
+                                <tr>
+                                    <td class="ps-3"><strong><?= esc($student['student_code']) ?></strong></td>
+                                    <td><?= esc($student['fullname']) ?></td>
+                                    <td><?= esc($student['email']) ?></td>
+                                    <td><?= esc($student['dob'] ?? '-') ?></td>
+                                    <td><?= esc($student['gender'] ?? '-') ?></td>
+                                    <td>
+                                        <?php if ($student['is_locked'] == 0): ?>
+                                            <span class="badge bg-danger">Khóa</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-success">Hoạt động</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editModal<?= $student['id'] ?>" title="Sửa">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <form method="POST" action="<?= base_url('manager_student_lock/' . $student['id']) ?>" style="display:inline;">
+                                            <?= csrf_field() ?>
+                                            <button type="submit" class="btn btn-sm <?= $student['is_locked'] == 0 ? 'btn-success' : 'btn-secondary' ?>" title="<?= $student['is_locked'] == 0 ? 'Mở khóa' : 'Khóa' ?>">
+                                                <i class="bi bi-<?= $student['is_locked'] == 0 ? 'unlock' : 'lock' ?>"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -84,33 +114,33 @@
     <div class="modal fade" id="studentModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold" id="modalTitle">Thêm Sinh viên</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="studentForm">
-                        <input type="hidden" id="studentId">
+                <form method="POST" action="<?= base_url('manager_student_add') ?>">
+                    <?= csrf_field() ?>
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">Thêm Sinh viên</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label">Mã Sinh viên <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="studentCode" required>
+                            <input type="text" class="form-control" name="student_code" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="fullname" required>
+                            <input type="text" class="form-control" name="fullname" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Email <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control" id="email" required>
+                            <input type="email" class="form-control" name="email" required>
                         </div>
                         <div class="row mb-3">
                             <div class="col">
                                 <label class="form-label">Ngày sinh</label>
-                                <input type="date" class="form-control" id="dob">
+                                <input type="date" class="form-control" name="dob">
                             </div>
                             <div class="col">
                                 <label class="form-label">Giới tính</label>
-                                <select class="form-select" id="gender">
+                                <select class="form-select" name="gender">
                                     <option value="Nam">Nam</option>
                                     <option value="Nữ">Nữ</option>
                                     <option value="Khác">Khác</option>
@@ -119,61 +149,71 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Địa chỉ</label>
-                            <textarea class="form-control" id="address" rows="2"></textarea>
+                            <textarea class="form-control" name="address" rows="2"></textarea>
                         </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button type="button" class="btn btn-primary" onclick="saveStudent()">Lưu lại</button>
-                </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        <button type="submit" class="btn btn-primary">Lưu lại</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="scheduleModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+    <?php foreach ($students as $student): ?>
+    <div class="modal fade" id="editModal<?= $student['id'] ?>" tabindex="-1">
+        <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title"><i class="bi bi-calendar-week me-2"></i> Hồ sơ học tập: <span id="scheduleStudentName" class="fw-bold"></span></h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body bg-light">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-striped mb-0">
-                                    <thead class="table-white">
-                                        <tr>
-                                            <th>Mã Lớp</th>
-                                            <th>Môn Học</th>
-                                            <th>Giảng Viên</th>
-                                            <th>Lịch Học</th>
-                                            <th>Phòng</th>
-                                            <th class="text-center">Điểm (GK / CK)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="schedule-tbody">
-                                        </tbody>
-                                </table>
+                <form method="POST" action="<?= base_url('manager_student_update/' . $student['id']) ?>">
+                    <?= csrf_field() ?>
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">Sửa Sinh viên</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Mã Sinh viên <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="student_code" value="<?= esc($student['student_code']) ?>" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="fullname" value="<?= esc($student['fullname']) ?>" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" name="email" value="<?= esc($student['email']) ?>" required>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label class="form-label">Ngày sinh</label>
+                                <input type="date" class="form-control" name="dob" value="<?= esc($student['dob'] ?? '') ?>">
+                            </div>
+                            <div class="col">
+                                <label class="form-label">Giới tính</label>
+                                <select class="form-select" name="gender">
+                                    <option value="Nam" <?= ($student['gender'] ?? '') == 'Nam' ? 'selected' : '' ?>>Nam</option>
+                                    <option value="Nữ" <?= ($student['gender'] ?? '') == 'Nữ' ? 'selected' : '' ?>>Nữ</option>
+                                    <option value="Khác" <?= ($student['gender'] ?? '') == 'Khác' ? 'selected' : '' ?>>Khác</option>
+                                </select>
                             </div>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label">Địa chỉ</label>
+                            <textarea class="form-control" name="address" rows="2"><?= esc($student['address'] ?? '') ?></textarea>
+                        </div>
                     </div>
-                    <div id="no-class-msg" class="text-center text-muted py-4 d-none">
-                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                        Sinh viên này chưa đăng ký lớp học nào.
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        <button type="submit" class="btn btn-primary">Cập nhật</button>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                </div>
+                </form>
             </div>
         </div>
     </div>
+    <?php endforeach; ?>
 
-    <script src="<?= base_url('assets/js/config.js') ?>"></script>
     <script src="<?= base_url('assets/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
     <script src="<?= base_url('assets/js/script.js') ?>"></script>
-    <script src="<?= base_url('assets/js/manager_students.js') ?>"></script>
 </body>
 </html>

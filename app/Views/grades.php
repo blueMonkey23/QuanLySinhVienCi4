@@ -27,21 +27,7 @@
     </div>
   </nav>
 
-  <aside id="sidebar" class="sidebar" aria-hidden="false">
-    <div class="px-3">
-      <div class="mb-3 px-2">
-        <img src="assets/images/hou-logo.png" alt="logo" style="width:44px;height:44px;border-radius:8px;margin-right:.6rem;vertical-align:middle">
-        <span style="vertical-align:middle;font-weight:700">Hệ thống</span>
-      </div>
-      <nav class="menu">
-        <a href="index.html"><i class="bi bi-house me-2"></i> Trang chủ</a>
-        <a href="information.html"><i class="bi bi-person-lines-fill me-2"></i> Thông tin sinh viên</a>
-        <a href="grades.html" class="active"><i class="bi bi-book me-2"></i> Xem điểm học tập</a>
-        <a href="class_schedule.html"><i class="bi bi-journal-text me-2"></i> Xem lịch học</a>
-        <a href="exam_schedule.html"><i class="bi bi-calendar me-2"></i> Xem lịch thi</a>
-      </nav>
-    </div>
-  </aside>
+  <?php $activePage = 'grades'; include(APPPATH . 'Views/partials/student_sidebar.php'); ?>
 
   <div id="overlay" class="overlay"></div>
 
@@ -82,7 +68,6 @@
       <section class="card-panel">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="m-0">Danh sách học phần</h5>
-          <div class="tiny muted">Cập nhật: <strong>02/11/2025</strong></div>
         </div>
 
         <div class="table-wrapper">
@@ -90,130 +75,66 @@
             <thead class="tiny text-muted">
               <tr>
                 <th class="text-center">HK</th>
-                <th class="text-center">Năm học</th>
-                <th class="text-start">Mã HP</th>
-                <th class="text-start">Tên học phần</th>
+                <th class="text-start">Mã lớp</th>
+                <th class="text-start">Tên môn học</th>
                 <th class="text-center">TC</th>
-                <th class="text-center">Điểm (10)</th>
-                <th class="text-center">Điểm (4)</th>
+                <th class="text-center">Chuyên cần</th>
+                <th class="text-center">Giữa kỳ</th>
+                <th class="text-center">Cuối kỳ</th>
+                <th class="text-center">Điểm TK</th>
                 <th class="text-center">Xếp loại</th>
-                <th class="text-center">Không tính TBC</th>
-                <th class="text-center">Ghi chú</th>
-                <th class="text-center">#</th>
               </tr>
             </thead>
             <tbody class="small">
+              <?php if (empty($classes)): ?>
               <tr>
-                <td class="text-center">1</td>
-                <td class="text-center">2025-2026</td>
-                <td class="text-start no-wrap">T1111111</td>
-                <td class="text-start">Môn 1</td>
-                <td class="text-center">3</td>
-                <td class="text-center fw-semibold">10</td>
-                <td class="text-center">4.0</td>
-                <td class="text-center"><span class="badge bg-success badge-status">A+</span></td>
-                <td class="text-center"><input type="checkbox" class="form-check-input row-check" disabled></td>
-                <td class="text-center muted"></td>
-                <td class="text-center actions"><a href="#" class="link-primary tiny">Xem</a></td>
+                <td colspan="9" class="text-center p-4">Chưa có điểm nào.</td>
               </tr>
-
-              <tr>
-                <td class="text-center">1</td>
-                <td class="text-center">2025-2026</td>
-                <td class="text-start no-wrap">T1111112</td>
-                <td class="text-start">Môn 2</td>
-                <td class="text-center">4</td>
-                <td class="text-center fw-semibold">10</td>
-                <td class="text-center">4.0</td>
-                <td class="text-center"><span class="badge bg-success badge-status">A+</span></td>
-                <td class="text-center"><input type="checkbox" class="form-check-input row-check" checked disabled></td>
-                <td class="text-center muted"></td>
-                <td class="text-center actions"><a href="#" class="link-primary tiny">Xem</a></td>
-              </tr>
-
-              <tr>
-                <td class="text-center">1</td>
-                <td class="text-center">2025-2026</td>
-                <td class="text-start no-wrap">T1111113</td>
-                <td class="text-start">Môn 3</td>
-                <td class="text-center">3</td>
-                <td class="text-center fw-semibold">10</td>
-                <td class="text-center">4.0</td>
-                <td class="text-center"><span class="badge bg-success badge-status">A+</span></td>
-                <td class="text-center"><input type="checkbox" class="form-check-input row-check" disabled></td>
-                <td class="text-center muted"></td>
-                <td class="text-center actions"><a href="#" class="link-primary tiny">Xem</a></td>
-              </tr>
-
-              <tr>
-                <td class="text-center">1</td>
-                <td class="text-center">2025-2026</td>
-                <td class="text-start no-wrap">T1111114</td>
-                <td class="text-start">Môn 4</td>
-                <td class="text-center">4</td>
-                <td class="text-center fw-semibold">10</td>
-                <td class="text-center">4.0</td>
-                <td class="text-center"><span class="badge bg-success badge-status">A+</span></td>
-                <td class="text-center"><input type="checkbox" class="form-check-input row-check" checked disabled></td>
-                <td class="text-center muted"></td>
-                <td class="text-center actions"><a href="#" class="link-primary tiny">Xem</a></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="card-panel">
-        <h5 class="mb-3">Danh sách học phần chưa tích lũy</h5>
-        <div class="table-wrapper">
-          <table class="table table-sm mb-0 align-middle">
-            <thead class="tiny text-muted ">
-              <tr>
-                <th>Khối</th>
-                <th>Mã HP</th>
-                <th>Tên học phần</th>
-                <th>HK</th>
-                <th>TC</th>
-                <th>Tiết</th>
-                <th>Điều kiện</th>
-                <th class="text-center">Bắt buộc</th>
-                <th>Tự chọn</th>
-              </tr>
-            </thead>
-            <tbody class="small">
-              <tr>
-                <td>Học phần bắt buộc</td>
-                <td>T1111115</td>
-                <td>Môn 1</td>
-                <td>1</td>
-                <td>3</td>
-                <td>0</td>
-                <td>Học trước: Môn 2</td>
-                <td class="text-center">X</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>Học phần bắt buộc</td>
-                <td>T1111116</td>
-                <td>Môn 2</td>
-                <td>1</td>
-                <td>3</td>
-                <td>0</td>
-                <td>Học trước: Môn 1</td>
-                <td class="text-center">X</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>Học phần bắt buộc</td>
-                <td>T1111117</td>
-                <td>Môn 3</td>
-                <td>1</td>
-                <td>3</td>
-                <td>0</td>
-                <td>Học trước: Môn 2</td>
-                <td class="text-center">X</td>
-                <td></td>
-              </tr>
+              <?php else: ?>
+                <?php foreach ($classes as $class): ?>
+                <tr>
+                  <td class="text-center"><?= esc($class['semester'] ?? '1') ?></td>
+                  <td class="text-start no-wrap"><?= esc($class['class_code']) ?></td>
+                  <td class="text-start"><?= esc($class['subject_name']) ?></td>
+                  <td class="text-center"><?= esc($class['credits'] ?? '3') ?></td>
+                  <td class="text-center fw-semibold"><?= $class['diligence_score'] !== null ? esc($class['diligence_score']) : '—' ?></td>
+                  <td class="text-center fw-semibold"><?= $class['midterm_score'] !== null ? esc($class['midterm_score']) : '—' ?></td>
+                  <td class="text-center fw-semibold"><?= $class['final_score'] !== null ? esc($class['final_score']) : '—' ?></td>
+                  <td class="text-center fw-semibold">
+                    <?php if ($class['diligence_score'] !== null && $class['midterm_score'] !== null && $class['final_score'] !== null): ?>
+                      <?php 
+                        $avg = ($class['diligence_score'] * 0.1 + $class['midterm_score'] * 0.3 + $class['final_score'] * 0.6);
+                        echo number_format($avg, 1);
+                      ?>
+                    <?php else: ?>
+                      —
+                    <?php endif; ?>
+                  </td>
+                  <td class="text-center">
+                    <?php if ($class['diligence_score'] !== null && $class['midterm_score'] !== null && $class['final_score'] !== null): ?>
+                      <?php 
+                        $avg = ($class['diligence_score'] * 0.1 + $class['midterm_score'] * 0.3 + $class['final_score'] * 0.6);
+                        if ($avg >= 9.0) {
+                          echo '<span class="badge bg-success badge-status">A+</span>';
+                        } elseif ($avg >= 8.0) {
+                          echo '<span class="badge bg-success badge-status">A</span>';
+                        } elseif ($avg >= 7.0) {
+                          echo '<span class="badge bg-primary badge-status">B</span>';
+                        } elseif ($avg >= 6.0) {
+                          echo '<span class="badge bg-info badge-status">C</span>';
+                        } elseif ($avg >= 5.0) {
+                          echo '<span class="badge bg-warning badge-status">D</span>';
+                        } else {
+                          echo '<span class="badge bg-danger badge-status">F</span>';
+                        }
+                      ?>
+                    <?php else: ?>
+                      <span class="badge bg-secondary badge-status">—</span>
+                    <?php endif; ?>
+                  </td>
+                </tr>
+                <?php endforeach; ?>
+              <?php endif; ?>
             </tbody>
           </table>
         </div>
@@ -221,7 +142,6 @@
 
     </div>
   </main>
-  <script src="<?= base_url('assets/js/config.js') ?>"></script>
   <script src="<?= base_url('assets/js/script.js') ?>"></script>
   <script src="<?= base_url('assets/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
 </body>

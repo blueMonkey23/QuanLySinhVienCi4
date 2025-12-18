@@ -26,21 +26,7 @@
     </div>
   </nav>
 
-  <aside id="sidebar" class="sidebar" aria-hidden="false">
-    <div class="px-3">
-      <div class="mb-3 px-2">
-        <img src="assets/images/hou-logo.png" alt="logo" style="width:44px;height:44px;border-radius:8px;margin-right:.6rem;vertical-align:middle">
-        <span style="vertical-align:middle;font-weight:700">Hệ thống</span>
-      </div>
-      <nav class="menu">
-        <a href="index.html"><i class="bi bi-house me-2"></i> Trang chủ</a>
-        <a href="information.html"><i class="bi bi-person-lines-fill me-2"></i> Thông tin sinh viên</a>
-        <a href="grades.html"><i class="bi bi-book me-2"></i> Xem điểm học tập</a>
-        <a href="class_schedule.html"><i class="bi bi-journal-text me-2"></i> Xem lịch học</a>
-        <a href="exam_schedule.html" class="active"><i class="bi bi-calendar me-2"></i> Xem lịch thi</a>
-      </nav>
-    </div>
-  </aside>
+  <?php $activePage = 'exam_schedule'; include(APPPATH . 'Views/partials/student_sidebar.php'); ?>
 
   <div id="overlay" class="overlay"></div>
 
@@ -94,43 +80,30 @@
                     <th class="no-wrap">Ngày</th>
                     <th>Thời gian</th>
                     <th>Môn</th>
-                    <th class="no-wrap">Mã HP</th>
+                    <th class="no-wrap">Mã lớp</th>
                     <th>Phòng</th>
                     <th class="no-wrap">Hình thức</th>
-                    <th class="text-end no-print">Hành động</th>
+                    <th>Loại</th>
                   </tr>
                 </thead>
-                <tbody id="examTable">
-                  <tr class="status-upcoming" data-type="final">
-                    <td class="no-wrap">05/12/2025</td>
-                    <td>08:00 – 10:00</td>
-                    <td><strong>Thiết kế trải nghiệm người dùng</strong></td>
-                    <td class="no-wrap">K24-UX-101</td>
-                    <td>KGĐ FITHOU-P52</td>
-                    <td class="no-wrap">Trực tiếp</td>
-                    <td class="text-end no-print"><a class="btn btn-sm btn-outline-primary">Chi tiết</a></td>
+                <tbody>
+                  <?php if (empty($exams)): ?>
+                  <tr>
+                    <td colspan="7" class="text-center p-4">Chưa có lịch thi nào.</td>
                   </tr>
-
-                  <tr class="status-upcoming" data-type="final">
-                    <td class="no-wrap">06/12/2025</td>
-                    <td>13:00 – 15:00</td>
-                    <td><strong>Lập trình Java</strong></td>
-                    <td class="no-wrap">K24-JAVA-202</td>
-                    <td>KGĐ FITHOU-P53</td>
-                    <td class="no-wrap">Trực tiếp</td>
-                    <td class="text-end no-print"><a class="btn btn-sm btn-outline-primary">Chi tiết</a></td>
-                  </tr>
-
-                  <tr class="status-done" data-type="mid">
-                    <td class="no-wrap">10/10/2025</td>
-                    <td>10:00 – 12:00</td>
-                    <td><strong>Cơ sở dữ liệu</strong></td>
-                    <td class="no-wrap">K24-DB-110</td>
-                    <td>KGĐ FITHOU-P12</td>
-                    <td class="no-wrap">Trực tiếp</td>
-                    <td class="text-end no-print"><a class="btn btn-sm btn-outline-primary">Chi tiết</a></td>
-                  </tr>
-
+                  <?php else: ?>
+                    <?php foreach ($exams as $exam): ?>
+                    <tr class="<?= strtotime($exam['exam_date']) > time() ? 'status-upcoming' : 'status-done' ?>">
+                      <td class="no-wrap"><?= date('d/m/Y', strtotime($exam['exam_date'])) ?></td>
+                      <td><?= esc($exam['exam_time'] ?? '08:00 – 10:00') ?></td>
+                      <td><strong><?= esc($exam['subject_name']) ?></strong></td>
+                      <td class="no-wrap"><?= esc($exam['class_code']) ?></td>
+                      <td><?= esc($exam['exam_room'] ?? 'TBA') ?></td>
+                      <td class="no-wrap"><?= esc($exam['format'] ?? 'Trực tiếp') ?></td>
+                      <td><?= esc($exam['exam_type'] ?? 'Cuối kỳ') ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                  <?php endif; ?>
                 </tbody>
               </table>
             </div>
@@ -138,7 +111,6 @@
     </div>
   </main>
 
-<script src="<?= base_url('assets/js/config.js') ?>"></script>
 <script src="<?= base_url('assets/js/script.js') ?>"></script>
 <script src="<?= base_url('assets/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
 

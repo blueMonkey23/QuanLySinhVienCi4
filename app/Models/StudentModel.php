@@ -10,12 +10,12 @@ class StudentModel extends Model
     protected $primaryKey       = 'id';
     protected $allowedFields    = [
         'user_id', 'student_code', 'name', 'dob', 
-        'gender', 'address', 'email', 'status'
+        'gender', 'address', 'phone', 'status', 'student_class_id'
     ];
 
     public function getStudentsWithUser($keyword = null)
     {
-        $builder = $this->select('students.*, users.email as user_email')
+        $builder = $this->select('students.*, students.status as is_locked, users.email')
                         ->join('users', 'students.user_id = users.id', 'left');
         
         if ($keyword) {

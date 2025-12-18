@@ -26,24 +26,7 @@
     </div>
   </nav>
 
-  <aside id="sidebar" class="sidebar" aria-hidden="false">
-    <div class="px-3">
-      <div class="mb-3 px-2">
-        <img src="assets/images/hou-logo.png" alt="logo" style="width:44px;height:44px;border-radius:8px;margin-right:.6rem;vertical-align:middle">
-        <span style="vertical-align:middle;font-weight:700">Hệ thống Quản lý</span>
-      </div>
-      
-      <nav class="menu">
-        <a href="manager_dashboard.html"><i class="bi bi-house me-2"></i> Trang chủ</a>
-        <a href="manager_classes.html" class="active"><i class="bi bi-easel me-2"></i> Quản lý Lớp học</a>
-        <a href="manager_students.html"><i class="bi bi-people me-2"></i> Quản lý Sinh viên</a>
-        <a href="manager_grades.html"><i class="bi bi-journal-check me-2"></i> Quản lý Điểm số</a>
-        <a href="manager_attendance.html"><i class="bi bi-person-check me-2"></i> Điểm danh</a>
-        <a href="manager_assignments.html"><i class="bi bi-file-earmark-text me-2"></i> Quản lý Bài tập</a>
-        <a href="manager_schedule.html"><i class="bi bi-calendar-event me-2"></i> Lịch giảng dạy</a>
-      </nav>
-      </div>
-  </aside>
+  <?php $activePage = 'classes'; include(APPPATH . 'Views/partials/manager_sidebar.php'); ?>
 
   <div id="overlay" class="overlay"></div>
 
@@ -57,32 +40,39 @@
           </a>
       </div>
 
-      <div class="card-panel mb-3">
+      <?php if (session()->getFlashdata('success')): ?>
+        <div class="alert alert-success alert-dismissible fade show">
+          <?= session()->getFlashdata('success') ?>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <?php endif; ?>
+      
+      <?php if (session()->getFlashdata('error')): ?>
+        <div class="alert alert-danger alert-dismissible fade show">
+          <?= session()->getFlashdata('error') ?>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <?php endif; ?>
+
+      <form method="GET" action="<?= base_url('manager_classes.html') ?>" class="card-panel mb-3">
         <div class="row g-3 align-items-center">
-          <div class="col-md-5">
-            <label for="searchClass" class="form-label fw-semibold">Tìm kiếm</label>
-            <input type="text" class="form-control" id="searchClass" placeholder="Nhập tên lớp, mã lớp, giáo viên...">
-          </div>
-          
-          <div class="col-md-5">
-            <label for="filterSubject" class="form-label fw-semibold">Lọc theo Môn học</label>
-            <select id="filterSubject" class="form-select">
-              <option value="all" selected>Tất cả Môn học</option>
-              </select>
+          <div class="col-md-10">
+            <label for="q" class="form-label fw-semibold">Tìm kiếm</label>
+            <input type="text" class="form-control" name="q" id="q" value="<?= esc($keyword ?? '') ?>" placeholder="Nhập tên lớp, mã lớp, giáo viên...">
           </div>
           
           <div class="col-md-2 d-flex align-items-end">
-            <button class="btn btn-primary w-100" id="btnFilter">
-              <i class="bi bi-search me-2"></i> Lọc
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="bi bi-search me-2"></i> Tìm kiếm
             </button>
           </div>
         </div>
-      </div>
+      </form>
       
       <div class="card-panel">
         <div class="d-flex justify-content-between align-items-center mb-2">
             <h5 class="mb-0">Danh sách Lớp học</h5>
-            <span class="text-muted tiny" id="class-count">Đang tải...</span>
+            <span class="text-muted tiny"><?= count($classes) ?> lớp học</span>
         </div>
 
         <div class="table-wrapper">
@@ -98,35 +88,58 @@
                 <th class="no-wrap">Hành động</th>
               </tr>
             </thead>
-            <tbody id="class-list-tbody">
+            <tbody>
+                <?php if (empty($classes)): ?>
                 <tr>
-                    <td colspan="7" class="text-center p-5">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <div>Đang tải danh sách lớp học...</div>
-                    </td>
+                    <td colspan="7" class="text-center p-4">Không tìm thấy lớp học nào.</td>
                 </tr>
+                <?php else: ?>
+                    <?php foreach ($classes as $class): ?>
+                    <tr>
+                        <td><strong><?= esc($class['class_code']) ?></strong></td>
+                        <td><?= esc($class['subject_name']) ?></td>
+                        <td><?= esc($class['teacher_name'] ?? 'Chưa có') ?></td>
+                        <td><?= esc($class['semester_name'] ?? 'HK1') ?></td>
+                        <td><?= esc($class['current_students'] ?? 0) ?>/<?= esc($class['max_students'] ?? 60) ?></td>
+                        <td>
+                            <?php if ($class['is_locked'] == 1): ?>
+                                <span class="badge bg-danger">Đã khóa</span>
+                            <?php else: ?>
+                                <span class="badge bg-success">Hoạt động</span>
+                            <?php endif; ?>
+                        </td>
+                        <td class="no-wrap">
+                            <a href="<?= base_url('manager_class_detail.html/' . $class['id']) ?>" class="btn btn-sm btn-info" title="Chi tiết">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="<?= base_url('manager_class_edit.html/' . $class['id']) ?>" class="btn btn-sm btn-warning" title="Sửa">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST" action="<?= base_url('manager_class_lock/' . $class['id']) ?>" style="display:inline;">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn btn-sm <?= $class['is_locked'] == 1 ? 'btn-success' : 'btn-secondary' ?>" title="<?= $class['is_locked'] == 1 ? 'Mở khóa' : 'Khóa' ?>">
+                                    <i class="bi bi-<?= $class['is_locked'] == 1 ? 'unlock' : 'lock' ?>"></i>
+                                </button>
+                            </formmethod="POST" action="<?= base_url('manager_class_delete/' . $class['id']) ?>" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn xóa lớp này?');">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn btn-sm btn-danger" title="Xóa">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </tbody>
           </table>
         </div>
-
-        <nav aria-label="Page navigation" class="mt-3 d-flex justify-content-end">
-          <ul class="pagination mb-0">
-            <li class="page-item disabled"><a class="page-link" href="#">Trước</a></li>
-            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-            <li class="page-item"><a class="page-link" href="#">2</a></li>
-            <li class="page-item"><a class="page-link" href="#">3</a></li>
-            <li class="page-item"><a class="page-link" href="#">...</a></li>
-            <li class="page-item"><a class="page-link" href="#">5</a></li>
-            <li class="page-item"><a class="page-link" href="#">Sau</a></li>
-          </ul>
-        </nav>
       </div>
 
     </div>
   </main>
-<script src="<?= base_url('assets/js/config.js') ?>"></script>
+<script>
+      const CONFIG = { API_BASE_URL: '<?= base_url("backend") ?>' };
+  </script>
 <script src="<?= base_url('assets/js/script.js') ?>"></script>
 <script src="<?= base_url('assets/js/manager_classes.js') ?>"></script>
 <script src="<?= base_url('assets/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>

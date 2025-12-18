@@ -1,12 +1,18 @@
 // Thay thế toàn bộ nội dung tệp script.js của bạn
 document.addEventListener('DOMContentLoaded', function() {
     const authButtons = document.getElementById('authButtons');
-    const API_STATUS_URL = `${CONFIG.API_BASE_URL}/status.php`; 
-    const API_LOGOUT_URL = `${CONFIG.API_BASE_URL}/logout.php`; 
 
-    function updateAuthUI(currentUser) {
-        if (currentUser) {
-            const userIdentifier = currentUser.identifier || currentUser.role; 
+    function updateAuthUI() {
+        // Kiểm tra user từ CONFIG (đã có sẵn từ server-side session)
+        if (CONFIG.USER_ROLE && CONFIG.USER_ROLE > 0) {
+            const currentUser = {
+                fullname: CONFIG.USER_NAME,
+                role: CONFIG.USER_ROLE
+            };
+            
+            const userIdentifier = currentUser.role === 1 ? 'Admin' : 
+                                   currentUser.role === 2 ? 'Quản lý' : 
+                                   currentUser.role === 3 ? 'Giảng viên' : 'Sinh viên';
 
             authButtons.innerHTML = `
                 <ul class="navbar-nav ms-auto mb-2 mb-md-0">
@@ -44,51 +50,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const targetId = event.target.id;
             if (targetId === 'logoutLink') {
                 event.preventDefault(); 
-                fetch(API_LOGOUT_URL, { method: 'POST' })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('Đăng xuất thành công!');
-                            updateAuthUI(null);
-                            window.location.href = 'login.html'; // Chuyển về trang đăng nhập
-                        } else {
-                            alert('Lỗi đăng xuất: ' + data.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Lỗi fetch đăng xuất:', error);
-                        alert('Lỗi kết nối khi đăng xuất.');
-                    });
+                // Chuyển đến logout endpoint
+                window.location.href = CONFIG.API_BASE + 'logout';
             }
             if (targetId === 'btnLogin') {
-                window.location.href = 'login.html';
+                window.location.href = CONFIG.API_BASE + 'login.html';
             }
             if (targetId === 'btnRegister') {
-                window.location.href = 'register.html';
+                window.location.href = CONFIG.API_BASE + 'register.html';
             }
         });
+        
+        // Hiển thị auth UI ngay lập tức từ server-side data
+        updateAuthUI();
     }
-
-    // Kiểm tra trạng thái đăng nhập
-    fetch(API_STATUS_URL)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.data.logged_in) {
-                updateAuthUI(data.data);
-            } else {
-                updateAuthUI(null);
-                // Nếu trang hiện tại không phải là login/register, chuyển hướng
-                const currentPage = window.location.pathname.split('/').pop();
-                if (currentPage !== 'login.html' && currentPage !== 'register.html') {
-                    // Tự động chuyển về trang đăng nhập nếu chưa đăng nhập
-                    window.location.href = 'login.html';
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Lỗi khi kiểm tra trạng thái đăng nhập:', error);
-            updateAuthUI(null);
-        });
 
     // Xử lý Sidebar
     const toggleBtn = document.getElementById("toggle-btn");

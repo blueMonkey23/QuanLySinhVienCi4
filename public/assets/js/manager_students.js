@@ -16,7 +16,7 @@ async function loadStudents() {
         tbody.innerHTML = '';
         if (json.data && json.data.length > 0) {
             json.data.forEach(std => {
-                const statusBadge = std.status == 1 
+                const statusBadge = std.status == 1
                     ? '<span class="badge bg-success">Hoạt động</span>' 
                     : '<span class="badge bg-danger">Đã khóa</span>';
                 

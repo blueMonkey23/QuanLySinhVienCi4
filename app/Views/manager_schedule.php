@@ -40,23 +40,7 @@
     </div>
   </nav>
 
-  <aside id="sidebar" class="sidebar" aria-hidden="false">
-    <div class="px-3">
-      <div class="mb-3 px-2">
-        <img src="assets/images/hou-logo.png" alt="logo" style="width:44px;height:44px;border-radius:8px;margin-right:.6rem;vertical-align:middle">
-        <span style="vertical-align:middle;font-weight:700">Hệ thống Quản lý</span>
-      </div>
-      <nav class="menu">
-        <a href="manager_dashboard.html"><i class="bi bi-house me-2"></i> Trang chủ</a>
-        <a href="manager_classes.html"><i class="bi bi-easel me-2"></i> Quản lý Lớp học</a>
-        <a href="manager_students.html"><i class="bi bi-people me-2"></i> Quản lý Sinh viên</a>
-        <a href="manager_grades.html"><i class="bi bi-journal-check me-2"></i> Quản lý Điểm số</a>
-        <a href="manager_attendance.html"><i class="bi bi-person-check me-2"></i> Điểm danh</a>
-        <a href="manager_assignments.html"><i class="bi bi-file-earmark-text me-2"></i> Quản lý Bài tập</a>
-        <a href="manager_schedule.html" class="active"><i class="bi bi-calendar-event me-2"></i> Lịch giảng dạy</a>
-      </nav>
-    </div>
-  </aside>
+  <?php $activePage = 'schedule'; include(APPPATH . 'Views/partials/manager_sidebar.php'); ?>
 
   <div id="overlay" class="overlay"></div>
 
@@ -145,7 +129,9 @@
       </div>
   </div>
 </main>
-<script src="<?= base_url('assets/js/config.js') ?>"></script>
+<script>
+      const CONFIG = { API_BASE_URL: '<?= base_url("backend") ?>' };
+  </script>
 <script src="<?= base_url('assets/js/script.js') ?>"></script>
 <script src="<?= base_url('assets/js/manager_schedule.js') ?>"></script>
 <script src="<?= base_url('assets/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>

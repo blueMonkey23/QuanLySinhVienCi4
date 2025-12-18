@@ -26,21 +26,7 @@
     </div>
   </nav>
 
-  <aside id="sidebar" class="sidebar" aria-hidden="false">
-    <div class="px-3">
-      <div class="mb-3 px-2">
-        <img src="assets/images/hou-logo.png" alt="logo" style="width:44px;height:44px;border-radius:8px;margin-right:.6rem;vertical-align:middle">
-        <span style="vertical-align:middle;font-weight:700">Hệ thống</span>
-      </div>
-      <nav class="menu">
-        <a href="index.html"><i class="bi bi-house me-2"></i> Trang chủ</a>
-        <a href="information.html" class="active"><i class="bi bi-person-lines-fill me-2"></i> Thông tin sinh viên</a>
-        <a href="grades.html"><i class="bi bi-book me-2"></i> Xem điểm học tập</a>
-        <a href="class_schedule.html"><i class="bi bi-journal-text me-2"></i> Xem lịch học</a>
-        <a href="exam_schedule.html"><i class="bi bi-calendar me-2"></i> Xem lịch thi</a>
-      </nav>
-    </div>
-  </aside>
+  <?php $activePage = 'information'; include(APPPATH . 'Views/partials/student_sidebar.php'); ?>
 
   <div id="overlay" class="overlay"></div>
 
@@ -57,173 +43,173 @@
               <div class="d-flex justify-content-between align-items-start mb-3">
                 <div>
                   <div class="text-muted small">Thông tin cơ bản</div>
-                  <h4 class="mb-0">Nguyễn Văn A</h4>
-                  <div class="text-muted">Mã sinh viên: <strong>24A1001D0341</strong></div>
+                  <h4 class="mb-0"><?= esc($student['fullname'] ?? 'N/A') ?></h4>
+                  <div class="text-muted">Mã sinh viên: <strong><?= esc($student['student_code'] ?? 'N/A') ?></strong></div>
                 </div>
                 <div class="text-end">
-                  <div class="mt-2 text-muted">Lớp: <strong>2410A08</strong></div>
+                  <div class="mt-2 text-muted">Lớp: <strong><?= esc($student['class_code'] ?? 'N/A') ?></strong></div>
                 </div>
               </div>
 
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Mã sinh viên</div>
-                  <div class="fw-semibold">24A1001D0341</div>
+                  <div class="fw-semibold"><?= esc($student['student_code'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Họ và tên</div>
-                  <div class="fw-semibold">Nguyễn Văn A</div>
+                  <div class="fw-semibold"><?= esc($student['fullname'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Ngày sinh</div>
-                  <div class="fw-semibold">01/01/2006</div>
+                  <div class="fw-semibold"><?= esc($student['dob'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Giới tính</div>
-                  <div class="fw-semibold">Nam</div>
+                  <div class="fw-semibold"><?= esc($student['gender'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Nơi sinh</div>
-                  <div class="fw-semibold">Hà Nội</div>
+                  <div class="fw-semibold"><?= esc($student['birth_place'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Quê quán</div>
-                  <div class="fw-semibold">Huyện A, Tỉnh B</div>
+                  <div class="fw-semibold"><?= esc($student['hometown'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Quốc tịch</div>
-                  <div class="fw-semibold">Việt Nam</div>
+                  <div class="fw-semibold"><?= esc($student['nationality'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Dân tộc</div>
-                  <div class="fw-semibold">Kinh</div>
+                  <div class="fw-semibold"><?= esc($student['ethnicity'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Tôn giáo</div>
-                  <div class="fw-semibold">Không</div>
+                  <div class="fw-semibold"><?= esc($student['religion'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">TP xuất thân</div>
-                  <div class="fw-semibold">Hà Nội</div>
+                  <div class="fw-semibold"><?= esc($student['origin_city'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Ngày vào Đoàn</div>
-                  <div class="fw-semibold">15/05/2018</div>
+                  <div class="fw-semibold"><?= esc($student['union_date'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Ngày vào Đảng</div>
-                  <div class="fw-semibold">—</div>
+                  <div class="fw-semibold"><?= esc($student['party_date'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Nơi thường trú</div>
-                  <div class="fw-semibold">Số 12, Phố X, Quận Y</div>
+                  <div class="fw-semibold"><?= esc($student['address'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Xã / Phường</div>
-                  <div class="fw-semibold">Phường Z</div>
+                  <div class="fw-semibold"><?= esc($student['ward'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Quận / Huyện</div>
-                  <div class="fw-semibold">Quận Y</div>
+                  <div class="fw-semibold"><?= esc($student['district'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Tỉnh / TP</div>
-                  <div class="fw-semibold">Hà Nội</div>
+                  <div class="fw-semibold"><?= esc($student['province'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Đối tượng CS</div>
-                  <div class="fw-semibold">Sinh viên chính quy</div>
+                  <div class="fw-semibold"><?= esc($student['subject_type'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Đối tượng trợ cấp</div>
-                  <div class="fw-semibold">Không</div>
+                  <div class="fw-semibold"><?= esc($student['subsidy_type'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Nhóm ĐT</div>
-                  <div class="fw-semibold">—</div>
+                  <div class="fw-semibold"><?= esc($student['phone_group'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">ĐT nhà riêng</div>
-                  <div class="fw-semibold">(84) 24 1234 5678</div>
+                  <div class="fw-semibold"><?= esc($student['home_phone'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">ĐT cá nhân</div>
-                  <div class="fw-semibold">1111 111 111</div>
+                  <div class="fw-semibold"><?= esc($student['phone'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Email</div>
-                  <div class="fw-semibold">vana@students.hou.edu.vn</div>
+                  <div class="fw-semibold"><?= esc($student['email'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Số CMND / CCCD</div>
-                  <div class="fw-semibold">123456789012</div>
+                  <div class="fw-semibold"><?= esc($student['id_number'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Địa chỉ báo tin</div>
-                  <div class="fw-semibold">Số 12, Phố X</div>
+                  <div class="fw-semibold"><?= esc($student['notify_address'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Nơi ở hiện nay</div>
-                  <div class="fw-semibold">Ký túc xá A - Phòng 101</div>
+                  <div class="fw-semibold"><?= esc($student['current_address'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Hệ đào tạo</div>
-                  <div class="fw-semibold">Chính quy</div>
+                  <div class="fw-semibold"><?= esc($student['training_system'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Khoa</div>
-                  <div class="fw-semibold">Công nghệ thông tin</div>
+                  <div class="fw-semibold"><?= esc($student['faculty'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Khóa</div>
-                  <div class="fw-semibold">K24</div>
+                  <div class="fw-semibold"><?= esc($student['course'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Ngành chính</div>
-                  <div class="fw-semibold">Khoa học máy tính</div>
+                  <div class="fw-semibold"><?= esc($student['major'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Chuyên ngành</div>
-                  <div class="fw-semibold">Trí tuệ nhân tạo</div>
+                  <div class="fw-semibold"><?= esc($student['specialization'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Lớp</div>
-                  <div class="fw-semibold">2410A08</div>
+                  <div class="fw-semibold"><?= esc($student['class_code'] ?? '—') ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                   <div class="small text-uppercase text-secondary">Đăng ký học ngành thứ 2</div>
-                  <div class="fw-semibold">Không</div>
+                  <div class="fw-semibold"><?= esc($student['second_major'] ?? '—') ?></div>
                 </div>
               </div>
             </div>
@@ -237,8 +223,8 @@
                 <div class="fs-3 text-primary"><i class="bi bi-person-badge"></i></div>
                 <div>
                   <div class="fw-bold">Tóm tắt</div>
-                  <div class="text-muted">Mã SV: <strong>24A1001D0341</strong></div>
-                  <div class="text-muted">Lớp: <strong>2410A08</strong></div>
+                  <div class="text-muted">Mã SV: <strong><?= esc($student['student_code'] ?? 'N/A') ?></strong></div>
+                  <div class="text-muted">Lớp: <strong><?= esc($student['class_code'] ?? 'N/A') ?></strong></div>
                 </div>
               </div>
             </div>
@@ -248,21 +234,8 @@
                 <div class="fs-3 text-success"><i class="bi bi-envelope"></i></div>
                 <div>
                   <div class="fw-bold">Liên hệ</div>
-                  <div class="text-muted">vana@students.hou.edu.vn</div>
-                  <div class="text-muted">1111 111 111</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="card menu-card">
-              <div class="card-body d-flex align-items-center gap-3">
-                <div class="fs-3 text-danger"><i class="bi bi-box-arrow-right"></i></div>
-                <div>
-                  <div class="fw-bold">Hành động</div>
-                  <div class="mt-2">
-                    <a href="#" class="btn btn-outline-primary btn-sm me-1"><i class="bi bi-pen"></i> Sửa</a>
-                    <a href="#" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer"></i> In</a>
-                  </div>
+                  <div class="text-muted"><?= esc($student['email'] ?? 'N/A') ?></div>
+                  <div class="text-muted"><?= esc($student['phone'] ?? 'N/A') ?></div>
                 </div>
               </div>
             </div>
@@ -272,7 +245,9 @@
       </div>
     </div>
   </main>
-<script src="<?= base_url('assets/js/config.js') ?>"></script>
+<script>
+      const CONFIG = { API_BASE_URL: '<?= base_url("backend") ?>' };
+  </script>
 <script src="<?= base_url('assets/js/script.js') ?>"></script>
 <script src="<?= base_url('assets/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
 
