@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quản lý Lớp học</title>
+  <link rel="icon" type="image/x-icon" href="<?= base_url('assets/images/hou-logo.png') ?>">
+  <link href="<?= base_url('assets/bootstrap/css/bootstrap.min.css') ?>" rel="stylesheet">
+  <link rel="stylesheet" href="<?= base_url('assets/bootstrap-icons/bootstrap-icons.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('assets/css/index.css') ?>">
+</head>
+<body>
+  <nav class="navbar-custom d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center">
+      <button id="toggle-btn" class="me-2">
+        <i class="bi bi-list text-white" style="font-size:1.3rem;color:var(--primary)"></i>
+      </button>
+      <a class="brand-title text-white" href="#">ỨNG DỤNG QUẢN LÝ LỚP HỌC</a>
+    </div>
+
+    <div class="d-flex align-items-center">
+      <div class="me-3 text-end">
+          <div class="d-flex" id="authButtons">
+              </div>
+      </div>
+    </div>
+  </nav>
+
+  <aside id="sidebar" class="sidebar" aria-hidden="false">
+    <div class="px-3">
+      <div class="mb-3 px-2">
+        <img src="assets/images/hou-logo.png" alt="logo" style="width:44px;height:44px;border-radius:8px;margin-right:.6rem;vertical-align:middle">
+        <span style="vertical-align:middle;font-weight:700">Hệ thống Quản lý</span>
+      </div>
+      
+      <nav class="menu">
+        <a href="manager_dashboard.html"><i class="bi bi-house me-2"></i> Trang chủ</a>
+        <a href="manager_classes.html" class="active"><i class="bi bi-easel me-2"></i> Quản lý Lớp học</a>
+        <a href="manager_students.html"><i class="bi bi-people me-2"></i> Quản lý Sinh viên</a>
+        <a href="manager_grades.html"><i class="bi bi-journal-check me-2"></i> Quản lý Điểm số</a>
+        <a href="manager_attendance.html"><i class="bi bi-person-check me-2"></i> Điểm danh</a>
+        <a href="manager_assignments.html"><i class="bi bi-file-earmark-text me-2"></i> Quản lý Bài tập</a>
+        <a href="manager_schedule.html"><i class="bi bi-calendar-event me-2"></i> Lịch giảng dạy</a>
+      </nav>
+      </div>
+  </aside>
+
+  <div id="overlay" class="overlay"></div>
+
+  <main class="content">
+    <div class="container-fluid">
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2 class="m-0 fw-bold">Quản lý Lớp học</h2>
+          <a href="manager_class_add.html" class="btn btn-primary"> 
+            <i class="bi bi-plus-circle me-2"></i> Thêm Lớp học mới
+          </a>
+      </div>
+
+      <div class="card-panel mb-3">
+        <div class="row g-3 align-items-center">
+          <div class="col-md-5">
+            <label for="searchClass" class="form-label fw-semibold">Tìm kiếm</label>
+            <input type="text" class="form-control" id="searchClass" placeholder="Nhập tên lớp, mã lớp, giáo viên...">
+          </div>
+          
+          <div class="col-md-5">
+            <label for="filterSubject" class="form-label fw-semibold">Lọc theo Môn học</label>
+            <select id="filterSubject" class="form-select">
+              <option value="all" selected>Tất cả Môn học</option>
+              </select>
+          </div>
+          
+          <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary w-100" id="btnFilter">
+              <i class="bi bi-search me-2"></i> Lọc
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-panel">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Danh sách Lớp học</h5>
+            <span class="text-muted tiny" id="class-count">Đang tải...</span>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>Mã Lớp</th>
+                <th>Tên Môn học</th>
+                <th>Giáo viên</th>
+                <th>Học kỳ</th>
+                <th>Sĩ số</th>
+                <th>Trạng thái</th>
+                <th class="no-wrap">Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="class-list-tbody">
+                <tr>
+                    <td colspan="7" class="text-center p-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div>Đang tải danh sách lớp học...</div>
+                    </td>
+                </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <nav aria-label="Page navigation" class="mt-3 d-flex justify-content-end">
+          <ul class="pagination mb-0">
+            <li class="page-item disabled"><a class="page-link" href="#">Trước</a></li>
+            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item"><a class="page-link" href="#">...</a></li>
+            <li class="page-item"><a class="page-link" href="#">5</a></li>
+            <li class="page-item"><a class="page-link" href="#">Sau</a></li>
+          </ul>
+        </nav>
+      </div>
+
+    </div>
+  </main>
+<script src="<?= base_url('assets/js/config.js') ?>"></script>
+<script src="<?= base_url('assets/js/script.js') ?>"></script>
+<script src="<?= base_url('assets/js/manager_classes.js') ?>"></script>
+<script src="<?= base_url('assets/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
+
+</body>
+</html>
