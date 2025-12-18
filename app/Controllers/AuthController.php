@@ -12,6 +12,17 @@ class AuthController extends BaseController
         $request = service('request');
         $session = session();
         
+        // Ngăn browser cache trang login
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        
+        // Nếu đã đăng nhập rồi và session hợp lệ, redirect về trang chủ
+        if ($session->get('logged_in') && $session->get('role_id')) {
+            $roleId = $session->get('role_id');
+            $redirectUrl = ($roleId == 4) ? '/index.html' : '/manager_dashboard.html';
+            return redirect()->to($redirectUrl);
+        }
+        
         // Nếu là GET request, hiển thị form login
         if ($request->getMethod() === 'get') {
             return view('login');
@@ -23,8 +34,7 @@ class AuthController extends BaseController
 
         // Validation
         if (empty($email) || empty($password)) {
-            $session->setFlashdata('error', 'Vui lòng điền đầy đủ thông tin!');
-            return redirect()->to('/login.html')->withInput();
+            return view('login', ['error' => 'Vui lòng điền đầy đủ thông tin!', 'old' => ['email' => $email]]);
         }
 
         $userModel = new UserModel();
@@ -33,30 +43,43 @@ class AuthController extends BaseController
         if ($user && password_verify($password, $user['password_hash'])) {
             // Đăng nhập thành công -> Lưu Session
             $role = $userModel->getUserRole($user['id']); 
+            $roleId = $userModel->getUserRoleId($user['id']);
             
             $session_data = [
                 'user_id'    => $user['id'],
+                'name'       => $user['name'],
                 'user_email' => $user['email'],
                 'user_role'  => $role,
+                'role_id'    => $roleId,
                 'logged_in'  => true
             ];
             $session->set($session_data);
             
             $session->setFlashdata('success', 'Đăng nhập thành công!');
             
-            // Redirect theo role
-            $redirectUrl = ($role === 'student') ? '/index.html' : '/manager_dashboard.html';
+            // Redirect theo role_id
+            $redirectUrl = ($roleId == 4) ? '/index.html' : '/manager_dashboard.html';
             return redirect()->to($redirectUrl);
         }
 
-        $session->setFlashdata('error', 'Email hoặc mật khẩu không chính xác.');
-        return redirect()->to('/login.html')->withInput();
+        return view('login', ['error' => 'Email hoặc mật khẩu không chính xác.', 'old' => ['email' => $email]]);
     }
 
     public function register()
     {
         $request = service('request');
         $session = session();
+        
+        // Ngăn browser cache trang register
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        
+        // Nếu đã đăng nhập rồi và session hợp lệ, redirect về trang chủ
+        if ($session->get('logged_in') && $session->get('role_id')) {
+            $roleId = $session->get('role_id');
+            $redirectUrl = ($roleId == 4) ? '/index.html' : '/manager_dashboard.html';
+            return redirect()->to($redirectUrl);
+        }
         
         // Nếu là GET request, hiển thị form register
         if ($request->getMethod() === 'get') {
@@ -72,13 +95,17 @@ class AuthController extends BaseController
 
         // Validation
         if (empty($email) || empty($password) || empty($studentId) || empty($name)) {
-            $session->setFlashdata('error', 'Vui lòng điền đầy đủ thông tin.');
-            return redirect()->to('/register.html')->withInput();
+            return view('register', [
+                'error' => 'Vui lòng điền đầy đủ thông tin.',
+                'old' => ['fullname' => $name, 'email' => $email, 'student_id' => $studentId]
+            ]);
         }
         
         if ($password !== $confirmPassword) {
-            $session->setFlashdata('error', 'Mật khẩu xác nhận không khớp.');
-            return redirect()->to('/register.html')->withInput();
+            return view('register', [
+                'error' => 'Mật khẩu xác nhận không khớp.',
+                'old' => ['fullname' => $name, 'email' => $email, 'student_id' => $studentId]
+            ]);
         }
 
         $userModel = new UserModel();
@@ -87,12 +114,16 @@ class AuthController extends BaseController
 
         // Kiểm tra Email hoặc Mã SV đã tồn tại chưa
         if ($userModel->where('email', $email)->first()) {
-            $session->setFlashdata('error', 'Email này đã được sử dụng.');
-            return redirect()->to('/register.html')->withInput();
+            return view('register', [
+                'error' => 'Email này đã được sử dụng.',
+                'old' => ['fullname' => $name, 'email' => $email, 'student_id' => $studentId]
+            ]);
         }
         if ($studentModel->where('student_code', $studentId)->first()) {
-            $session->setFlashdata('error', 'Mã sinh viên này đã tồn tại.');
-            return redirect()->to('/register.html')->withInput();
+            return view('register', [
+                'error' => 'Mã sinh viên này đã tồn tại.',
+                'old' => ['fullname' => $name, 'email' => $email, 'student_id' => $studentId]
+            ]);
         }
 
         // Tạo tài khoản (Transaction)
@@ -120,8 +151,10 @@ class AuthController extends BaseController
         $db->transComplete();
 
         if ($db->transStatus() === false) {
-            $session->setFlashdata('error', 'Lỗi hệ thống, không thể tạo tài khoản.');
-            return redirect()->to('/register.html')->withInput();
+            return view('register', [
+                'error' => 'Lỗi hệ thống, không thể tạo tài khoản.',
+                'old' => ['fullname' => $name, 'email' => $email, 'student_id' => $studentId]
+            ]);
         }
 
         $session->setFlashdata('success', 'Đăng ký thành công! Bạn có thể đăng nhập ngay.');

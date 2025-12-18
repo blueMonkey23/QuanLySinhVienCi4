@@ -48,16 +48,31 @@ document.addEventListener('DOMContentLoaded', function() {
     if (authButtons) {
         authButtons.addEventListener('click', function(event) {
             const targetId = event.target.id;
+            
             if (targetId === 'logoutLink') {
-                event.preventDefault(); 
+                event.preventDefault();
+                event.stopPropagation();
                 // Chuyển đến logout endpoint
                 window.location.href = CONFIG.API_BASE + 'logout';
+                return;
             }
             if (targetId === 'btnLogin') {
-                window.location.href = CONFIG.API_BASE + 'login.html';
+                event.preventDefault();
+                event.stopPropagation();
+                // Tránh redirect loop nếu đã ở trang login
+                if (!window.location.pathname.includes('login.html')) {
+                    window.location.href = CONFIG.API_BASE + 'login.html';
+                }
+                return;
             }
             if (targetId === 'btnRegister') {
-                window.location.href = CONFIG.API_BASE + 'register.html';
+                event.preventDefault();
+                event.stopPropagation();
+                // Tránh redirect loop nếu đã ở trang register
+                if (!window.location.pathname.includes('register.html')) {
+                    window.location.href = CONFIG.API_BASE + 'register.html';
+                }
+                return;
             }
         });
         

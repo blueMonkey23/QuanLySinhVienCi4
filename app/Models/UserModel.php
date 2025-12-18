@@ -23,4 +23,16 @@ class UserModel extends Model
         $row = $query->getRow();
         return $row ? $row->name : 'student';
     }
+    
+    // Hàm lấy role_id của user
+    public function getUserRoleId($userId)
+    {
+        $db = \Config\Database::connect();
+        $builder = $db->table('role_user');
+        $builder->select('role_id');
+        $builder->where('user_id', $userId);
+        $query = $builder->get();
+        $row = $query->getRow();
+        return $row ? $row->role_id : 4; // Default: 4 = Student
+    }
 }

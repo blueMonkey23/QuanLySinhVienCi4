@@ -246,7 +246,11 @@
     </div>
   </main>
 <script>
-      const CONFIG = { API_BASE_URL: '<?= base_url("backend") ?>' };
+  const CONFIG = {
+    API_BASE: '<?= base_url() ?>',
+    USER_ROLE: <?= json_encode(session()->get('role_id') ?? 0) ?>,
+    USER_NAME: <?= json_encode(session()->get('name') ?? 'Guest') ?>
+  };
   </script>
 <script src="<?= base_url('assets/js/script.js') ?>"></script>
 <script src="<?= base_url('assets/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>

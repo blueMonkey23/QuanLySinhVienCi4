@@ -33,7 +33,7 @@
   <nav class="navbar-custom d-flex justify-content-between align-items-center">
     <div class="d-flex align-items-center">
       <button id="toggle-btn" class="me-2"><i class="bi bi-list text-white" style="font-size:1.3rem;"></i></button>
-      <a class="brand-title text-white" href="#">ỨNG DỤNG QUẢN LÝ LỚP HỌC</a>
+      <a class="brand-title text-white" href="#">ỨNG DỤNG QUẢN LÝ SINH VIÊN</a>
     </div>
     <div class="d-flex align-items-center">
       <div class="me-3 text-end" id="authButtons"></div>
@@ -53,22 +53,31 @@
       <div class="card card-schedule">
         <div class="card-body p-3">
           
-          <div class="d-flex flex-wrap gap-3 mb-3 align-items-end">
+          <form method="GET" action="<?= base_url('manager_schedule.html') ?>" class="d-flex flex-wrap gap-3 mb-3 align-items-end">
              <div>
                 <label class="tiny muted fw-bold">Giáo viên</label>
-                <select class="form-select form-select-sm" id="filter_teacher" style="width: 200px;">
+                <select class="form-select form-select-sm" name="teacher_id" style="width: 200px;">
                     <option value="">-- Tất cả --</option>
-                    </select>
+                    <?php
+                    $teacherModel = new \App\Models\TeacherModel();
+                    $teachers = $teacherModel->findAll();
+                    foreach ($teachers as $t):
+                    ?>
+                        <option value="<?= $t['id'] ?>" <?= ($teacherId ?? '') == $t['id'] ? 'selected' : '' ?>>
+                            <?= esc($t['first_name'] . ' ' . $t['last_name']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
              </div>
              <div>
                 <label class="tiny muted fw-bold">Phòng học</label>
-                <input type="text" class="form-control form-control-sm" id="filter_room" placeholder="VD: P52" style="width: 120px;">
+                <input type="text" class="form-control form-control-sm" name="room" placeholder="VD: P52" value="<?= esc($room ?? '') ?>" style="width: 120px;">
              </div>
              <div>
-                <button class="btn btn-sm btn-primary" id="btn_apply_filter"><i class="bi bi-funnel"></i> Lọc</button>
-                <button class="btn btn-sm btn-outline-secondary" id="btn_reset_filter">Đặt lại</button>
+                <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-funnel"></i> Lọc</button>
+                <a href="<?= base_url('manager_schedule.html') ?>" class="btn btn-sm btn-outline-secondary">Đặt lại</a>
              </div>
-          </div>
+          </form>
 
           <div class="schedule-wrapper">
             <div class="schedule-header">
@@ -130,10 +139,49 @@
   </div>
 </main>
 <script>
-      const CONFIG = { API_BASE_URL: '<?= base_url("backend") ?>' };
-  </script>
+    // CONFIG cho script.js
+    const CONFIG = {
+        API_BASE: '<?= base_url() ?>',
+        USER_ROLE: <?= json_encode((int)(session()->get('role_id') ?? 0)) ?>,
+        USER_NAME: <?= json_encode(session()->get('name') ?? 'Guest') ?>,
+        USER_ID: <?= json_encode(session()->get('id') ?? null) ?>
+    };
+    
+    // Render schedule data từ PHP
+    const schedules = <?= json_encode($schedules ?? []) ?>;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        schedules.forEach(item => {
+            let shift = '';
+            const startHour = parseInt(item.start_time.split(':')[0]);
+            
+            if (startHour < 12) shift = 'morning';
+            else if (startHour < 18) shift = 'afternoon';
+            else shift = 'evening';
+
+            const cell = document.querySelector(`.shift-cell[data-day="${item.day_of_week}"][data-shift="${shift}"]`);
+
+            if (cell) {
+                const div = document.createElement('div');
+                div.className = 'schedule-item';
+                div.innerHTML = `
+                    <div class="fw-bold text-primary">${item.subject_name}</div>
+                    <div class="tiny text-muted">${item.class_code}</div>
+                    <div class="tiny"><i class="bi bi-person"></i> ${item.teacher_name || 'Chưa gán'}</div>
+                    <div class="tiny"><i class="bi bi-geo-alt"></i> ${item.room}</div>
+                    <div class="tiny"><i class="bi bi-clock"></i> ${item.start_time.substring(0,5)} - ${item.end_time.substring(0,5)}</div>
+                `;
+                
+                div.addEventListener('click', () => {
+                    window.location.href = `<?= base_url('manager_class_detail.html/') ?>${item.class_id}`;
+                });
+
+                cell.appendChild(div);
+            }
+        });
+    });
+</script>
 <script src="<?= base_url('assets/js/script.js') ?>"></script>
-<script src="<?= base_url('assets/js/manager_schedule.js') ?>"></script>
 <script src="<?= base_url('assets/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
 
 </body>

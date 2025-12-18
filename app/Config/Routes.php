@@ -12,12 +12,17 @@ use CodeIgniter\Router\RouteCollection;
 // 1. ROUTE MẶC ĐỊNH & VIEW (GIAO DIỆN)
 // --------------------------------------------------------------------
 
-// Trang chủ mặc định: Chuyển hướng đến trang đăng nhập
-$routes->get('/', 'Home::login');
+// Trang chủ mặc định: Kiểm tra session và redirect theo role
+$routes->get('/', 'Home::defaultPage');
 
 // --- NHÓM VIEW CÔNG KHAI (Không cần đăng nhập) ---
 $routes->match(['get', 'post'], 'login.html', 'AuthController::login');
 $routes->match(['get', 'post'], 'register.html', 'AuthController::register');
+$routes->get('logout', 'AuthController::logout');
+$routes->get('clear-session', function() {
+    session()->destroy();
+    return redirect()->to('/login.html')->with('success', 'Session cleared!');
+});
 
 // --- NHÓM VIEW BẢO VỆ (Cần đăng nhập - Filter Auth) ---
 $routes->group('', ['filter' => 'auth'], function($routes) {

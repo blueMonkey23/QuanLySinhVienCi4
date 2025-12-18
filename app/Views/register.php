@@ -12,9 +12,9 @@
     <main class="form-signin">
         <h2 class="text-center mb-4">Đăng ký tài khoản</h2>
         
-        <?php if (session()->getFlashdata('error')): ?>
+        <?php if (isset($error)): ?>
             <div class="alert alert-danger">
-                <?= session()->getFlashdata('error') ?>
+                <?= esc($error) ?>
             </div>
         <?php endif; ?>
         
@@ -28,17 +28,17 @@
             <?= csrf_field() ?>
             <div class="mb-3">
                 <label for="fullname" class="form-label">Họ và tên:</label>
-                <input type="text" class="form-control" id="fullname" name="fullname" value="<?= old('fullname') ?>" required>
+                <input type="text" class="form-control" id="fullname" name="fullname" value="<?= esc($old['fullname'] ?? '') ?>" required>
             </div>
 
             <div class="mb-3">
                 <label for="email" class="form-label">Email:</label>
-                <input type="email" class="form-control" id="email" name="email" value="<?= old('email') ?>" required>
+                <input type="email" class="form-control" id="email" name="email" value="<?= esc($old['email'] ?? '') ?>" required>
             </div>
 
             <div class="mb-3">
                 <label for="student_id" class="form-label">Mã sinh viên:</label>
-                <input type="text" class="form-control" id="student_id" name="student_id" value="<?= old('student_id') ?>" required>
+                <input type="text" class="form-control" id="student_id" name="student_id" value="<?= esc($old['student_id'] ?? '') ?>" required>
             </div>
 
             <div class="mb-3">
@@ -60,5 +60,17 @@
     </main>
 
     <script src="<?= base_url('assets/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
+    <script>
+    // Ngăn double submit
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const submitBtn = this.querySelector('button[type="submit"]');
+        if (submitBtn.disabled) {
+            e.preventDefault();
+            return false;
+        }
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Đang xử lý...';
+    });
+    </script>
 </body>
 </html>

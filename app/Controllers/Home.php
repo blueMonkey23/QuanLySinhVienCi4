@@ -4,6 +4,28 @@ namespace App\Controllers;
 
 class Home extends BaseController
 {
+    // Trang chủ mặc định - redirect theo role
+    public function defaultPage()
+    {
+        $session = session();
+        
+        // Kiểm tra đã đăng nhập chưa
+        if (!$session->has('user_id')) {
+            return redirect()->to('/login.html');
+        }
+        
+        // Redirect theo role
+        $roleId = $session->get('role_id');
+        
+        if ($roleId == 2) {
+            // Quản lý -> Dashboard
+            return redirect()->to('/manager_dashboard.html');
+        } else {
+            // Sinh viên -> Trang chủ sinh viên
+            return redirect()->to('/index.html');
+        }
+    }
+    
     // 1. Trang Đăng nhập (Mặc định)
     public function login()
     {

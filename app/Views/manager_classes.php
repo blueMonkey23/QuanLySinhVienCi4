@@ -15,7 +15,7 @@
       <button id="toggle-btn" class="me-2">
         <i class="bi bi-list text-white" style="font-size:1.3rem;color:var(--primary)"></i>
       </button>
-      <a class="brand-title text-white" href="#">ỨNG DỤNG QUẢN LÝ LỚP HỌC</a>
+      <a class="brand-title text-white" href="#">ỨNG DỤNG QUẢN LÝ SINH VIÊN</a>
     </div>
 
     <div class="d-flex align-items-center">
@@ -139,8 +139,12 @@
     </div>
   </main>
 <script>
-      const CONFIG = { API_BASE_URL: '<?= base_url("backend") ?>' };
-  </script>
+  const CONFIG = {
+    API_BASE: '<?= base_url() ?>',
+    USER_ROLE: <?= json_encode(session()->get('role_id') ?? 0) ?>,
+    USER_NAME: <?= json_encode(session()->get('name') ?? 'Guest') ?>
+  };
+</script>
 <script src="<?= base_url('assets/js/script.js') ?>"></script>
 <script src="<?= base_url('assets/js/manager_classes.js') ?>"></script>
 <script src="<?= base_url('assets/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>

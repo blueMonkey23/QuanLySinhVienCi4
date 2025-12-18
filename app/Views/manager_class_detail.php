@@ -14,7 +14,7 @@
   <nav class="navbar-custom d-flex justify-content-between align-items-center">
     <div class="d-flex align-items-center">
       <button id="toggle-btn" class="me-2"><i class="bi bi-list text-white" style="font-size:1.3rem;"></i></button>
-      <a class="brand-title text-white" href="#">ỨNG DỤNG QUẢN LÝ LỚP HỌC</a>
+      <a class="brand-title text-white" href="#">ỨNG DỤNG QUẢN LÝ SINH VIÊN</a>
     </div>
     <div class="d-flex align-items-center">
       <div class="me-3 text-end" id="authButtons"></div>
