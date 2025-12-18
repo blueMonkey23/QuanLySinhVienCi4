@@ -56,7 +56,7 @@
     <div class="row g-4">
       
       <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <a href="teacher_classes.html" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
+        <a href="manager_classes.html" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
           <i class="bi bi-easel fs-1 mb-3"></i>
           <h6 class="fw-semibold">Danh sách Lớp học</h6>
         </div></a>

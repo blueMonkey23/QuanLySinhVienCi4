@@ -1,1 +1,88 @@
+# CodeIgniter 4 - QuanLySinhVien
+
+#-------------------------
+# Operating Specific Junk Files
+#-------------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+*~
+.directory
+.Trash-*
+
+#-------------------------
+# Environment Files
+#-------------------------
 .env
+.vagrant
+Vagrantfile
+
+#-------------------------
+# Temporary Files
+#-------------------------
+writable/cache/*
+!writable/cache/index.html
+writable/logs/*
+!writable/logs/index.html
+writable/session/*
+!writable/session/index.html
+writable/uploads/*
+!writable/uploads/index.html
+writable/debugbar/*
+php_errors.log
+
+#-------------------------
+# Test Files
+#-------------------------
+tests/coverage*
+phpunit
+
+#-------------------------
+# Composer
+#-------------------------
+vendor/
+
+#-------------------------
+# IDE Files
+#-------------------------
+.idea/*
+nbproject/*
+.vscode/*
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+.settings/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.loadpath
+.factorypath
+
+#-------------------------
+# Node Modules
+#-------------------------
+node_modules/
+package-lock.json
+yarn.lock
+
+#-------------------------
+# Database Backup
+#-------------------------
+*.sql.backup
+*.sql~
+database_backup/
+database_setup.sql
