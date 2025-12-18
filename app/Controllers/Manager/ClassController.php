@@ -29,11 +29,22 @@ class ClassController extends BaseController
 
         $data = $this->classModel->getClassesWithDetails($keyword, $subjectId);
 
-        // Map 'id' thành 'class_id' và chuyển đổi day_of_week
+        // Lấy schedule cho mỗi class riêng biệt
         $data = array_map(function($item) {
             $item['class_id'] = $item['id'];
-            $item['day_of_week'] = $this->convertBitToDay($item['day_of_week'] ?? 2);
-            $item['schedule_time'] = substr($item['start_time'] ?? '00:00', 0, 5) . '-' . substr($item['end_time'] ?? '00:00', 0, 5);
+            
+            // Lấy schedule riêng
+            $schedule = $this->scheduleModel->where('class_id', $item['id'])->first();
+            if ($schedule) {
+                $item['day_of_week'] = $this->convertBitToDay($schedule['day_of_week']);
+                $item['schedule_time'] = substr($schedule['start_time'], 0, 5) . '-' . substr($schedule['end_time'], 0, 5);
+                $item['class_room'] = $schedule['room'];
+            } else {
+                $item['day_of_week'] = 'Chưa xếp';
+                $item['schedule_time'] = 'Chưa có';
+                $item['class_room'] = 'Chưa có';
+            }
+            
             return $item;
         }, $data);
 
@@ -66,7 +77,7 @@ class ClassController extends BaseController
         $session = session();
         
         // Validate
-        if (empty($this->request->getPost('class_id')) || 
+        if (empty($this->request->getPost('class_code')) || 
             empty($this->request->getPost('subject_id')) || 
             empty($this->request->getPost('teacher_id')) || 
             empty($this->request->getPost('class_room'))) {
@@ -75,7 +86,7 @@ class ClassController extends BaseController
         }
 
         $data = [
-            'class_id' => $this->request->getPost('class_id'),
+            'class_code' => $this->request->getPost('class_code'),
             'subject_id' => $this->request->getPost('subject_id'),
             'teacher_id' => $this->request->getPost('teacher_id'),
             'class_room' => $this->request->getPost('class_room'),
@@ -107,7 +118,7 @@ class ClassController extends BaseController
         }
 
         // Kiểm tra trùng mã lớp
-        if ($this->classModel->where('class_code', $data['class_id'])->first()) {
+        if ($this->classModel->where('class_code', $data['class_code'])->first()) {
             $session->setFlashdata('error', 'Mã lớp này đã tồn tại.');
             return redirect()->back()->withInput();
         }
@@ -116,7 +127,7 @@ class ClassController extends BaseController
         $this->db->transStart();
 
         $classId = $this->classModel->insert([
-            'class_code'  => $data['class_id'],
+            'class_code'  => $data['class_code'],
             'subject_id'  => $data['subject_id'],
             'teacher_id'  => $data['teacher_id'],
             'semester_id' => 1,
@@ -124,6 +135,11 @@ class ClassController extends BaseController
             'max_students'=> 60,
             'is_locked'   => 0
         ]);
+        
+        // Get the actual inserted ID
+        if (!$classId) {
+            $classId = $this->classModel->getInsertID();
+        }
 
         $this->scheduleModel->insert([
             'class_id'    => $classId,
@@ -177,7 +193,7 @@ class ClassController extends BaseController
         $session = session();
         
         $data = [
-            'class_id' => $this->request->getPost('class_id'),
+            'class_code' => $this->request->getPost('class_code'),
             'subject_id' => $this->request->getPost('subject_id'),
             'teacher_id' => $this->request->getPost('teacher_id'),
             'class_room' => $this->request->getPost('class_room'),
@@ -207,7 +223,7 @@ class ClassController extends BaseController
         $this->db->transStart();
 
         $this->classModel->update($id, [
-            'class_code' => $data['class_id'],
+            'class_code' => $data['class_code'],
             'subject_id' => $data['subject_id'],
             'teacher_id' => $data['teacher_id'],
             'format'     => $data['format']
@@ -263,27 +279,35 @@ class ClassController extends BaseController
     // 8. Chi tiết lớp - GET
     public function detail($id)
     {
-        $classBuilder = $this->classModel->asArray()
+        // Lấy thông tin lớp học
+        $classInfo = $this->classModel->asArray()
             ->select('classes.*, classes.id as class_id, 
                       subjects.name as subject_name, subjects.subject_code,
                       semesters.name as semester_name, 
-                      CONCAT(teachers.first_name, " ", teachers.last_name) as teacher_name,
-                      schedules.room, schedules.start_time, schedules.end_time, schedules.day_of_week')
+                      CONCAT(teachers.first_name, " ", teachers.last_name) as teacher_name')
             ->join('subjects', 'classes.subject_id = subjects.id', 'left')
             ->join('teachers', 'classes.teacher_id = teachers.id', 'left')
             ->join('semesters', 'classes.semester_id = semesters.id', 'left')
-            ->join('schedules', 'classes.id = schedules.class_id', 'left')
-            ->where('classes.id', $id);
-
-        $classInfo = $classBuilder->first();
+            ->where('classes.id', $id)
+            ->first();
 
         if (!$classInfo) {
             session()->setFlashdata('error', 'Không tìm thấy lớp học.');
             return redirect()->to('/manager_classes.html');
         }
 
-        $classInfo['day_of_week'] = $this->convertBitToDay($classInfo['day_of_week']);
-        $classInfo['schedule_time'] = substr($classInfo['start_time'] ?? '00:00',0,5) . '-' . substr($classInfo['end_time'] ?? '00:00',0,5);
+        // Lấy schedule riêng biệt để tránh duplicate do JOIN
+        $schedule = $this->scheduleModel->where('class_id', $id)->first();
+        
+        if ($schedule) {
+            $classInfo['day_of_week'] = $this->convertBitToDay($schedule['day_of_week']);
+            $classInfo['schedule_time'] = substr($schedule['start_time'] ?? '00:00',0,5) . '-' . substr($schedule['end_time'] ?? '00:00',0,5);
+            $classInfo['room'] = $schedule['room'];
+        } else {
+            $classInfo['day_of_week'] = 'Chưa xếp';
+            $classInfo['schedule_time'] = 'Chưa có';
+            $classInfo['room'] = 'Chưa có';
+        }
         
         // Lấy danh sách sinh viên
         $enrollmentModel = new \App\Models\EnrollmentModel();

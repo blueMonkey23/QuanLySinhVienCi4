@@ -56,7 +56,7 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
              <h5 class="mb-0">Thông tin chung</h5>
              <?php if ($class['is_locked'] == 1): ?>
-                <span class="badge bg-danger">Đã khóa</span>
+                <span class="badge bg-danger">Khóa</span>
              <?php else: ?>
                 <span class="badge bg-success">Hoạt động</span>
              <?php endif; ?>

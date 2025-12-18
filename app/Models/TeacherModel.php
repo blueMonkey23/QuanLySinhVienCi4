@@ -10,7 +10,7 @@ class TeacherModel extends Model
     protected $primaryKey       = 'id';
     protected $allowedFields    = ['user_id', 'teacher_code', 'first_name', 'last_name', 'faculty_id'];
 
-    public function findAll(int $limit = 0, int $offset = 0)
+    public function findAll(?int $limit = null, int $offset = 0)
     {
         $teachers = parent::findAll($limit, $offset);
         

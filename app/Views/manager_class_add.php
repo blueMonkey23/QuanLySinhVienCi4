@@ -64,7 +64,7 @@
                             <option value="">-- Chọn Môn học --</option>
                             <?php foreach ($subjects as $subject): ?>
                                 <option value="<?= $subject['id'] ?>" <?= old('subject_id') == $subject['id'] ? 'selected' : '' ?>>
-                                    <?= esc($subject['subject_name']) ?>
+                                    <?= esc($subject['name']) ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -157,7 +157,26 @@
       </div>
     </div>
   </main>
+  <script>
+  const CONFIG = {
+    API_BASE: '<?= base_url() ?>',
+    USER_ROLE: <?= json_encode(session()->get('role_id') ?? 0) ?>,
+    USER_NAME: <?= json_encode(session()->get('name') ?? 'Guest') ?>
+  };
+  </script>
   <script src="<?= base_url('assets/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
   <script src="<?= base_url('assets/js/script.js') ?>"></script>
+  <script>
+  // Ngăn double submit
+  document.querySelector('form').addEventListener('submit', function(e) {
+    const btn = this.querySelector('button[type="submit"]');
+    if (btn.disabled) {
+      e.preventDefault();
+      return false;
+    }
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang xử lý...';
+  });
+  </script>
 </body>
 </html>

@@ -103,7 +103,7 @@
                         <td><?= esc($class['current_students'] ?? 0) ?>/<?= esc($class['max_students'] ?? 60) ?></td>
                         <td>
                             <?php if ($class['is_locked'] == 1): ?>
-                                <span class="badge bg-danger">Đã khóa</span>
+                                <span class="badge bg-danger">Khóa</span>
                             <?php else: ?>
                                 <span class="badge bg-success">Hoạt động</span>
                             <?php endif; ?>
@@ -117,10 +117,11 @@
                             </a>
                             <form method="POST" action="<?= base_url('manager_class_lock/' . $class['id']) ?>" style="display:inline;">
                                 <?= csrf_field() ?>
-                                <button type="submit" class="btn btn-sm <?= $class['is_locked'] == 1 ? 'btn-success' : 'btn-secondary' ?>" title="<?= $class['is_locked'] == 1 ? 'Mở khóa' : 'Khóa' ?>">
-                                    <i class="bi bi-<?= $class['is_locked'] == 1 ? 'unlock' : 'lock' ?>"></i>
+                                <button type="submit" class="btn btn-sm <?= $class['is_locked'] == 0 ? 'btn-success' : 'btn-secondary' ?>" title="<?= $class['is_locked'] == 0 ? 'Mở khóa' : 'Khóa' ?>">
+                                    <i class="bi bi-<?= $class['is_locked'] == 0 ? 'unlock' : 'lock' ?>"></i>
                                 </button>
-                            </formmethod="POST" action="<?= base_url('manager_class_delete/' . $class['id']) ?>" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn xóa lớp này?');">
+                            </form>
+                            <form method="POST" action="<?= base_url('manager_class_delete/' . $class['id']) ?>" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn xóa lớp này?');">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="btn btn-sm btn-danger" title="Xóa">
                                     <i class="bi bi-trash"></i>

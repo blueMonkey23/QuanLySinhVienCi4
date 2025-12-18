@@ -55,7 +55,7 @@
                         <select class="form-select <?= session()->getFlashdata('errors')['subject_id'] ?? '' ? 'is-invalid' : '' ?>" id="subject_id" name="subject_id" required>
                             <?php foreach ($subjects as $subject): ?>
                                 <option value="<?= $subject['id'] ?>" <?= old('subject_id', $class['subject_id']) == $subject['id'] ? 'selected' : '' ?>>
-                                    <?= esc($subject['subject_name']) ?>
+                                    <?= esc($subject['name']) ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>

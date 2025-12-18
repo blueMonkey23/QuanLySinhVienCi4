@@ -13,17 +13,15 @@ class ClassModel extends Model
         'format', 'max_students', 'is_locked', 'created_at'
     ];
 
-    // Hàm lấy danh sách lớp đầy đủ thông tin (Join với Subject, Teacher, Semester, Schedule)
+    // Hàm lấy danh sách lớp đầy đủ thông tin (Join với Subject, Teacher, Semester)
     public function getClassesWithDetails($keyword = null, $subjectId = null)
     {
         $builder = $this->select('classes.*, subjects.name as subject_name, subjects.subject_code, 
                                   semesters.name as semester_name, semesters.end_date as semester_end_date,
-                                  CONCAT(teachers.first_name, " ", teachers.last_name) as teacher_name,
-                                  schedules.day_of_week, schedules.start_time, schedules.end_time, schedules.room as class_room')
+                                  CONCAT(teachers.first_name, " ", teachers.last_name) as teacher_name')
                         ->join('subjects', 'classes.subject_id = subjects.id', 'left')
                         ->join('semesters', 'classes.semester_id = semesters.id', 'left')
-                        ->join('teachers', 'classes.teacher_id = teachers.id', 'left')
-                        ->join('schedules', 'classes.id = schedules.class_id', 'left');
+                        ->join('teachers', 'classes.teacher_id = teachers.id', 'left');
 
         if ($keyword) {
             $builder->groupStart()
