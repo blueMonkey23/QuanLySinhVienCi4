@@ -15,7 +15,11 @@ class StudentModel extends Model
 
     public function getStudentsWithUser($keyword = null)
     {
-        $builder = $this->select('students.*, students.status as is_locked, users.email')
+        $builder = $this->select('students.id as id, students.user_id, students.student_code, 
+                                  students.name, students.dob, students.gender, students.address, 
+                                  students.phone, students.status, students.status as is_locked, 
+                                  students.student_class_id, students.created_at, students.updated_at,
+                                  users.email')
                         ->join('users', 'students.user_id = users.id', 'left');
         
         if ($keyword) {

@@ -91,6 +91,9 @@
                                         <?php endif; ?>
                                     </td>
                                     <td class="text-center">
+                                        <button class="btn btn-sm btn-info" onclick="viewSchedule(<?= $student['id'] ?>, '<?= esc($student['fullname']) ?>')" title="Xem lịch học" data-student-id="<?= $student['id'] ?>" data-user-id="<?= $student['user_id'] ?? 'N/A' ?>">
+                                            <i class="bi bi-calendar3"></i>
+                                        </button>
                                         <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editModal<?= $student['id'] ?>" title="Sửa">
                                             <i class="bi bi-pencil"></i>
                                         </button>
@@ -213,7 +216,85 @@
     </div>
     <?php endforeach; ?>
 
+    <!-- Modal xem lịch học -->
+    <div class="modal fade" id="scheduleModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Lịch học - <span id="studentNameSchedule"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="scheduleContent">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Đang tải...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="<?= base_url('assets/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
     <script src="<?= base_url('assets/js/script.js') ?>"></script>
+    <script>
+        function viewSchedule(studentId, studentName) {
+            document.getElementById('studentNameSchedule').textContent = studentName;
+            
+            // Hiển thị modal
+            const modal = new bootstrap.Modal(document.getElementById('scheduleModal'));
+            modal.show();
+            
+            // Tải lịch học qua AJAX
+            fetch('<?= base_url('api/student_schedule/') ?>' + studentId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displaySchedule(data.schedule);
+                    } else {
+                        document.getElementById('scheduleContent').innerHTML = 
+                            '<div class="alert alert-warning">Sinh viên chưa đăng ký lớp học nào.</div>';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('scheduleContent').innerHTML = 
+                        '<div class="alert alert-danger">Lỗi khi tải lịch học.</div>';
+                    console.error('Error:', error);
+                });
+        }
+
+        function displaySchedule(schedule) {
+            if (schedule.length === 0) {
+                document.getElementById('scheduleContent').innerHTML = 
+                    '<div class="alert alert-info">Sinh viên chưa đăng ký lớp học nào.</div>';
+                return;
+            }
+
+            const daysOfWeek = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+            let html = '<div class="table-responsive"><table class="table table-bordered table-hover">';
+            html += '<thead class="table-primary"><tr>';
+            html += '<th>Lớp học</th><th>Môn học</th><th>Giáo viên</th><th>Thứ</th><th>Giờ học</th><th>Phòng</th>';
+            html += '</tr></thead><tbody>';
+
+            schedule.forEach(item => {
+                html += '<tr>';
+                html += '<td><strong>' + (item.class_code || '-') + '</strong></td>';
+                html += '<td>' + (item.subject_name || '-') + '</td>';
+                html += '<td>' + (item.teacher_name || '-') + '</td>';
+                html += '<td>' + daysOfWeek[item.day_of_week] + '</td>';
+                html += '<td>' + item.start_time.substring(0, 5) + ' - ' + item.end_time.substring(0, 5) + '</td>';
+                html += '<td>' + (item.room || '-') + '</td>';
+                html += '</tr>';
+            });
+
+            html += '</tbody></table></div>';
+            document.getElementById('scheduleContent').innerHTML = html;
+        }
+    </script>
 </body>
 </html>

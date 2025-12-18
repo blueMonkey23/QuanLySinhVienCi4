@@ -54,6 +54,10 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
     $routes->post('manager_student_add', 'Manager\StudentController::create');
     $routes->post('manager_student_update/(:num)', 'Manager\StudentController::update/$1');
     $routes->post('manager_student_lock/(:num)', 'Manager\StudentController::toggleLock/$1');
+    
+    // API - Lịch học sinh viên
+    $routes->get('api/student_schedule/(:num)', 'Manager\StudentController::getSchedule/$1');
+    $routes->get('api/debug_student/(:any)', 'Manager\StudentController::debugStudent/$1');
 });
 
 // --------------------------------------------------------------------
