@@ -27,7 +27,7 @@ class AuthFilter implements FilterInterface
             }
             
             // Nếu truy cập trực tiếp vào View -> Chuyển hướng về login
-            return redirect()->to(base_url('login.html'));
+            return redirect()->to(base_url('login'));
         }
     }
 

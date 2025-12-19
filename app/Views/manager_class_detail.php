@@ -33,7 +33,7 @@
             <h2 class="m-0 fw-bold">Chi tiết Lớp học</h2>
             <div class="text-muted"><?= esc($class['class_code']) ?></div>
         </div>
-        <a href="<?= base_url('manager_classes.html') ?>" class="btn btn-outline-secondary">
+        <a href="<?= base_url('manager_classes') ?>" class="btn btn-outline-secondary">
           <i class="bi bi-arrow-left me-2"></i> Quay lại
         </a>
       </div>

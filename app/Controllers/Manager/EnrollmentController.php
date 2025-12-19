@@ -61,7 +61,7 @@ class EnrollmentController extends BaseController
         ]);
         
         $session->setFlashdata('success', "Đã thêm $studentCode vào lớp.");
-        return redirect()->to("/manager_class_detail.html/$classId");
+        return redirect()->to("/manager_class_detail/$classId");
     }
 
     // 2. Xóa sinh viên khỏi lớp - POST
@@ -73,7 +73,7 @@ class EnrollmentController extends BaseController
                               ->where('student_id', $studentId)->delete();
         
         $session->setFlashdata('success', 'Đã xóa sinh viên khỏi lớp.');
-        return redirect()->to("/manager_class_detail.html/$classId");
+        return redirect()->to("/manager_class_detail/$classId");
     }
 
     // 3. Cập nhật bảng điểm - POST
@@ -120,6 +120,6 @@ class EnrollmentController extends BaseController
         }
 
         $session->setFlashdata('success', "Đã lưu điểm cho $updatedCount sinh viên.");
-        return redirect()->to("/manager_class_detail.html/$classId");
+        return redirect()->to("/manager_class_detail/$classId");
     }
 }

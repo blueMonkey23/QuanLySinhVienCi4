@@ -157,7 +157,7 @@ class ClassController extends BaseController
         }
 
         $session->setFlashdata('success', 'Thêm lớp học thành công!');
-        return redirect()->to('/manager_classes.html');
+        return redirect()->to('/manager_classes');
     }
 
     // 4. Form sửa lớp - GET
@@ -172,7 +172,7 @@ class ClassController extends BaseController
 
         if (!$class) {
             session()->setFlashdata('error', 'Không tìm thấy lớp học.');
-            return redirect()->to('/manager_classes.html');
+            return redirect()->to('/manager_classes');
         }
         
         $class['day_of_week_text'] = $this->convertBitToDay($class['day_of_week']);
@@ -239,7 +239,7 @@ class ClassController extends BaseController
         $this->db->transComplete();
 
         $session->setFlashdata('success', 'Cập nhật lớp học thành công!');
-        return redirect()->to('/manager_classes.html');
+        return redirect()->to('/manager_classes');
     }
 
     // 6. Xóa lớp - POST
@@ -253,7 +253,7 @@ class ClassController extends BaseController
             $session->setFlashdata('error', 'Không tìm thấy lớp để xóa.');
         }
         
-        return redirect()->to('/manager_classes.html');
+        return redirect()->to('/manager_classes');
     }
 
     // 7. Khóa/Mở khóa lớp - POST
@@ -264,7 +264,7 @@ class ClassController extends BaseController
         $class = $this->classModel->find($id);
         if (!$class) {
             $session->setFlashdata('error', 'Lớp không tồn tại.');
-            return redirect()->to('/manager_classes.html');
+            return redirect()->to('/manager_classes');
         }
 
         $newStatus = $class['is_locked'] == 1 ? 0 : 1;
@@ -273,7 +273,7 @@ class ClassController extends BaseController
         $msg = $newStatus ? 'Đã KHÓA lớp học.' : 'Đã MỞ KHÓA lớp học.';
         $session->setFlashdata('success', $msg);
         
-        return redirect()->to('/manager_classes.html');
+        return redirect()->to('/manager_classes');
     }
 
     // 8. Chi tiết lớp - GET
@@ -293,7 +293,7 @@ class ClassController extends BaseController
 
         if (!$classInfo) {
             session()->setFlashdata('error', 'Không tìm thấy lớp học.');
-            return redirect()->to('/manager_classes.html');
+            return redirect()->to('/manager_classes');
         }
 
         // Lấy schedule riêng biệt để tránh duplicate do JOIN

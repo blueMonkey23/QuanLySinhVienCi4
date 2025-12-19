@@ -35,7 +35,7 @@
 
       <div class="d-flex justify-content-between align-items-center mb-3">
           <h2 class="m-0 fw-bold">Quản lý Lớp học</h2>
-          <a href="manager_class_add.html" class="btn btn-primary"> 
+          <a href="manager_class_add" class="btn btn-primary"> 
             <i class="bi bi-plus-circle me-2"></i> Thêm Lớp học mới
           </a>
       </div>
@@ -54,7 +54,7 @@
         </div>
       <?php endif; ?>
 
-      <form method="GET" action="<?= base_url('manager_classes.html') ?>" class="card-panel mb-3">
+      <form method="GET" action="<?= base_url('manager_classes') ?>" class="card-panel mb-3">
         <div class="row g-3 align-items-center">
           <div class="col-md-10">
             <label for="q" class="form-label fw-semibold">Tìm kiếm</label>
@@ -109,10 +109,10 @@
                             <?php endif; ?>
                         </td>
                         <td class="no-wrap">
-                            <a href="<?= base_url('manager_class_detail.html/' . $class['id']) ?>" class="btn btn-sm btn-info" title="Chi tiết">
+                            <a href="<?= base_url('manager_class_detail/' . $class['id']) ?>" class="btn btn-sm btn-info" title="Chi tiết">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <a href="<?= base_url('manager_class_edit.html/' . $class['id']) ?>" class="btn btn-sm btn-warning" title="Sửa">
+                            <a href="<?= base_url('manager_class_edit/' . $class['id']) ?>" class="btn btn-sm btn-warning" title="Sửa">
                                 <i class="bi bi-pencil"></i>
                             </a>
                             <form method="POST" action="<?= base_url('manager_class_lock/' . $class['id']) ?>" style="display:inline;">

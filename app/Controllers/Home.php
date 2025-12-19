@@ -11,7 +11,7 @@ class Home extends BaseController
         
         // Kiểm tra đã đăng nhập chưa
         if (!$session->has('user_id')) {
-            return redirect()->to('/login.html');
+            return redirect()->to('/login');
         }
         
         // Redirect theo role
@@ -19,10 +19,10 @@ class Home extends BaseController
         
         if ($roleId == 2) {
             // Quản lý -> Dashboard
-            return redirect()->to('/manager_dashboard.html');
+            return redirect()->to('/manager_dashboard');
         } else {
             // Sinh viên -> Trang chủ sinh viên
-            return redirect()->to('/index.html');
+            return redirect()->to('/index');
         }
     }
     

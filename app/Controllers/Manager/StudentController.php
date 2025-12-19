@@ -94,7 +94,7 @@ class StudentController extends BaseController
         }
 
         $session->setFlashdata('success', 'Thêm sinh viên thành công!');
-        return redirect()->to('/manager_students.html');
+        return redirect()->to('/manager_students');
     }
 
     // 3. Cập nhật sinh viên - POST
@@ -115,7 +115,7 @@ class StudentController extends BaseController
             $session->setFlashdata('error', 'Cập nhật thất bại.');
         }
         
-        return redirect()->to('/manager_students.html');
+        return redirect()->to('/manager_students');
     }
 
     // 4. Khóa/Mở khóa sinh viên - POST
@@ -127,7 +127,7 @@ class StudentController extends BaseController
         
         if (!$student) {
             $session->setFlashdata('error', 'Không tìm thấy sinh viên.');
-            return redirect()->to('/manager_students.html');
+            return redirect()->to('/manager_students');
         }
 
         $newStatus = ($student['status'] == 1) ? 0 : 1;
@@ -136,6 +136,6 @@ class StudentController extends BaseController
         $msg = ($newStatus == 1 ? 'Đã mở khóa ' : 'Đã khóa ') . 'hồ sơ sinh viên.';
         $session->setFlashdata('success', $msg);
         
-        return redirect()->to('/manager_students.html');
+        return redirect()->to('/manager_students');
     }
 }

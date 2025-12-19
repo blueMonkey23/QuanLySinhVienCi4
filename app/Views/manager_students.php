@@ -45,7 +45,7 @@
             <?php endif; ?>
 
             <div class="card p-3 mb-3 shadow-sm border-0">
-                <form method="GET" action="<?= base_url('manager_students.html') ?>" class="row">
+                <form method="GET" action="<?= base_url('manager_students') ?>" class="row">
                     <div class="col-md-6">
                         <div class="input-group">
                             <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>

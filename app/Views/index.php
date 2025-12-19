@@ -40,28 +40,28 @@
     <div class="row g-4">
       
       <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <a href="information.html" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
+        <a href="information" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
           <i class="bi bi-person fs-1 mb-3"></i>
           <h6 class="fw-semibold">Hồ sơ sinh viên</h6>
         </div></a>
       </div>
 
       <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <a href="grades.html" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
+        <a href="grades" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
           <i class="bi bi-person fs-1 mb-3"></i>
           <h6 class="fw-semibold">Kết quả học tập</h6>
         </div></a>
       </div>
 
       <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <a href="class_schedule.html" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
+        <a href="class_schedule" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
           <i class="bi bi-calendar-event fs-1 mb-3"></i>
           <h6 class="fw-semibold">Xem Lịch học</h6>
         </div></a>
       </div>
 
       <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <a href="exam_schedule.html" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
+        <a href="exam_schedule" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
           <i class="bi bi-journal-bookmark fs-1 mb-3"></i>
           <h6 class="fw-semibold">Xem Lịch thi</h6>
         </div></a>

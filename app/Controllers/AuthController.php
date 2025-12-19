@@ -7,28 +7,38 @@ use App\Models\UserModel;
 
 class AuthController extends BaseController
 {
+
+    public function index(){
+        return view ('login');
+    }
+
+
     public function login()
     {
         $request = service('request');
         $session = session();
         
-        // Ngăn browser cache trang login
-        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
-        header('Pragma: no-cache');
-        
         // Nếu đã đăng nhập rồi và session hợp lệ, redirect về trang chủ
         if ($session->get('logged_in') && $session->get('role_id')) {
             $roleId = $session->get('role_id');
-            $redirectUrl = ($roleId == 4) ? '/index.html' : '/manager_dashboard.html';
+            $redirectUrl = ($roleId == 4) ? '/index' : '/manager_dashboard';
             return redirect()->to($redirectUrl);
         }
         
         // Nếu là GET request, hiển thị form login
         if ($request->getMethod() === 'get') {
-            return view('login');
+            return view('login', ['error' => null, 'old' => []]);
         }
         
         // POST request - Xử lý đăng nhập
+        return $this->processLogin();
+    }
+    
+    private function processLogin()
+    {
+        $request = service('request');
+        $session = session();
+        
         $email = $request->getPost('email');
         $password = $request->getPost('password');
 
@@ -58,7 +68,7 @@ class AuthController extends BaseController
             $session->setFlashdata('success', 'Đăng nhập thành công!');
             
             // Redirect theo role_id
-            $redirectUrl = ($roleId == 4) ? '/index.html' : '/manager_dashboard.html';
+            $redirectUrl = ($roleId == 4) ? '/index' : '/manager_dashboard';
             return redirect()->to($redirectUrl);
         }
 
@@ -69,24 +79,31 @@ class AuthController extends BaseController
     {
         $request = service('request');
         $session = session();
-        
-        // Ngăn browser cache trang register
+
         header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
         header('Pragma: no-cache');
         
         // Nếu đã đăng nhập rồi và session hợp lệ, redirect về trang chủ
         if ($session->get('logged_in') && $session->get('role_id')) {
             $roleId = $session->get('role_id');
-            $redirectUrl = ($roleId == 4) ? '/index.html' : '/manager_dashboard.html';
+            $redirectUrl = ($roleId == 4) ? '/index' : '/manager_dashboard';
             return redirect()->to($redirectUrl);
         }
         
         // Nếu là GET request, hiển thị form register
         if ($request->getMethod() === 'get') {
-            return view('register');
+            return view('register', ['error' => null, 'old' => []]);
         }
         
         // POST request - Xử lý đăng ký
+        return $this->processRegister();
+    }
+    
+    private function processRegister()
+    {
+        $request = service('request');
+        $session = session();
+        
         $name = $request->getPost('fullname');
         $email = $request->getPost('email');
         $studentId = $request->getPost('student_id');
@@ -136,10 +153,8 @@ class AuthController extends BaseController
             'name'  => $name
         ]);
 
-        // Gán Role Student (ID=4)
+        // Gán Role Student
         $db->table('role_user')->insert(['user_id' => $userId, 'role_id' => 4]);
-
-        // Tạo Student Profile
         $studentModel->insert([
             'user_id' => $userId,
             'student_code' => $studentId,
@@ -158,7 +173,7 @@ class AuthController extends BaseController
         }
 
         $session->setFlashdata('success', 'Đăng ký thành công! Bạn có thể đăng nhập ngay.');
-        return redirect()->to('/login.html');
+        return redirect()->to('/login');
     }
     
     public function logout()
@@ -166,25 +181,22 @@ class AuthController extends BaseController
         $session = session();
         $session->destroy();
         $session->setFlashdata('success', 'Đăng xuất thành công!');
-        return redirect()->to('/login.html');
+        return redirect()->to('/login');
     }
 
     public function status()
     {
         $session = session();
         if ($session->get('logged_in')) {
-            // Logic lấy tên đầy đủ từ bảng teachers/students (tương tự status.php cũ)
-            // Tạm thời trả về thông tin session
             return $this->response->setJSON([
                 'success' => true,
                 'data' => [
                     'logged_in' => true,
-                    'fullname'  => $session->get('user_email'), // Cần query thêm tên thật sau này
+                    'fullname'  => $session->get('user_email'),
                     'role'      => $session->get('user_role')
                 ]
             ]);
         }
-
         return $this->response->setJSON([
             'success' => true,
             'data' => ['logged_in' => false]

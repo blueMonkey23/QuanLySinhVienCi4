@@ -53,7 +53,7 @@
       <div class="card card-schedule">
         <div class="card-body p-3">
           
-          <form method="GET" action="<?= base_url('manager_schedule.html') ?>" class="d-flex flex-wrap gap-3 mb-3 align-items-end">
+          <form method="GET" action="<?= base_url('manager_schedule') ?>" class="d-flex flex-wrap gap-3 mb-3 align-items-end">
              <div>
                 <label class="tiny muted fw-bold">Giáo viên</label>
                 <select class="form-select form-select-sm" name="teacher_id" style="width: 200px;">
@@ -75,7 +75,7 @@
              </div>
              <div>
                 <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-funnel"></i> Lọc</button>
-                <a href="<?= base_url('manager_schedule.html') ?>" class="btn btn-sm btn-outline-secondary">Đặt lại</a>
+                <a href="<?= base_url('manager_schedule') ?>" class="btn btn-sm btn-outline-secondary">Đặt lại</a>
              </div>
           </form>
 
@@ -173,7 +173,7 @@
                 `;
                 
                 div.addEventListener('click', () => {
-                    window.location.href = `<?= base_url('manager_class_detail.html/') ?>${item.class_id}`;
+                    window.location.href = `<?= base_url('manager_class_detail/') ?>${item.class_id}`;
                 });
 
                 cell.appendChild(div);

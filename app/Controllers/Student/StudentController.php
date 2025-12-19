@@ -36,7 +36,7 @@ class StudentController extends BaseController
         
         if (!$student) {
             session()->setFlashdata('error', 'Không tìm thấy thông tin sinh viên.');
-            return redirect()->to('/index.html');
+            return redirect()->to('/index');
         }
 
         $builder = $this->db->table('enrollments e')
@@ -87,7 +87,7 @@ class StudentController extends BaseController
         
         if (!$student) {
             session()->setFlashdata('error', 'Không tìm thấy thông tin sinh viên.');
-            return redirect()->to('/index.html');
+            return redirect()->to('/index');
         }
 
         $builder = $this->db->table('enrollments e')

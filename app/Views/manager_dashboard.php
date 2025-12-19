@@ -21,7 +21,7 @@
     <div class="d-flex align-items-center">
       <div class="me-3 text-end">
           <div class="d-flex" id="authButtons">
-              </div>
+          </div>
       </div>
     </div>
   </nav>
@@ -39,56 +39,56 @@
     <div class="row g-4">
       
       <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <a href="manager_classes.html" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
+        <a href="manager_classes" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
           <i class="bi bi-easel fs-1 mb-3"></i>
           <h6 class="fw-semibold">Danh sách Lớp học</h6>
         </div></a>
       </div>
 
       <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <a href="teacher_grades.html" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
+        <a href="teacher_grades" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
           <i class="bi bi-journal-check fs-1 mb-3"></i>
           <h6 class="fw-semibold">Nhập/Xem Điểm số</h6>
         </div></a>
       </div>
 
       <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <a href="teacher_attendance.html" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
+        <a href="teacher_attendance" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
           <i class="bi bi-person-check fs-1 mb-3"></i>
           <h6 class="fw-semibold">Điểm danh</h6>
         </div></a>
       </div>
 
       <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <a href="teacher_assignments.html" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
+        <a href="teacher_assignments" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
           <i class="bi bi-file-earmark-text fs-1 mb-3"></i>
           <h6 class="fw-semibold">Quản lý Bài tập</h6>
         </div></a>
       </div>
 
       <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <a href="teacher_students.html" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
+        <a href="teacher_students" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
           <i class="bi bi-people fs-1 mb-3"></i>
           <h6 class="fw-semibold">Tra cứu Sinh viên</h6>
         </div></a>
       </div>
 
       <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <a href="teacher_schedule.html" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
+        <a href="teacher_schedule" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
           <i class="bi bi-calendar-event fs-1 mb-3"></i>
           <h6 class="fw-semibold">Lịch giảng dạy</h6>
         </div></a>
       </div>
 
       <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <a href="teacher_reports.html" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
+        <a href="teacher_reports" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
           <i class="bi bi-graph-up-arrow fs-1 mb-3"></i>
           <h6 class="fw-semibold">Báo cáo & Thống kê</h6>
         </div></a>
       </div>
 
       <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <a href="teacher_messages.html" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
+        <a href="teacher_messages" class="navbar-brand"><div class="menu-card text-center p-4 shadow-sm rounded">
           <i class="bi bi-bell fs-1 mb-3"></i>
           <h6 class="fw-semibold">Thông báo & Tin nhắn</h6>
         </div></a>
