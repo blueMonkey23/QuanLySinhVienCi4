@@ -33,7 +33,7 @@
             <h2 class="m-0 fw-bold">Chi tiết Lớp học</h2>
             <div class="text-muted"><?= esc($class['class_code']) ?></div>
         </div>
-        <a href="<?= base_url('manager_classes') ?>" class="btn btn-outline-secondary">
+        <a href="<?= base_url('manager/classes') ?>" class="btn btn-outline-secondary">
           <i class="bi bi-arrow-left me-2"></i> Quay lại
         </a>
       </div>
@@ -96,7 +96,7 @@
         </div>
 
         <div class="table-responsive mb-3">
-          <form method="POST" action="<?= base_url('manager_class_grades/' . $class['id']) ?>">
+          <form method="POST" action="<?= base_url('manager/class/grades/' . $class['id']) ?>">
               <?= csrf_field() ?>
               <table class="table table-hover table-bordered align-middle">
                 <thead class="table-light">
@@ -124,7 +124,7 @@
                             <td><input type="number" class="form-control form-control-sm" name="midterm_score[<?= $idx ?>]" value="<?= esc($student['midterm_score'] ?? '') ?>" min="0" max="10" step="0.1"></td>
                             <td><input type="number" class="form-control form-control-sm" name="final_score[<?= $idx ?>]" value="<?= esc($student['final_score'] ?? '') ?>" min="0" max="10" step="0.1"></td>
                             <td class="text-center">
-                                <a href="<?= base_url('manager_class_remove_student/' . $class['id'] . '/' . $student['student_id']) ?>" class="btn btn-sm btn-danger" onclick="return confirm('Xóa sinh viên này khỏi lớp?')">
+                                <a href="<?= base_url('manager/class/remove-student/' . $class['id'] . '/' . $student['student_id']) ?>" class="btn btn-sm btn-danger" onclick="return confirm('Xóa sinh viên này khỏi lớp?')">
                                     <i class="bi bi-trash"></i>
                                 </a>
                             </td>
@@ -146,7 +146,7 @@
 
         <div class="row align-items-center p-3 bg-light rounded border">
             <div class="col-md-12">
-                <form method="POST" action="<?= base_url('manager_class_add_student/' . $class['id']) ?>" class="d-flex gap-2">
+                <form method="POST" action="<?= base_url('manager/class/add-student/' . $class['id']) ?>" class="d-flex gap-2">
                     <?= csrf_field() ?>
                     <input type="text" class="form-control" name="student_code" placeholder="Nhập Mã SV để thêm (VD: 24A1...)" required>
                     <button type="submit" class="btn btn-success text-nowrap">

@@ -8,8 +8,12 @@ use App\Models\UserModel;
 class AuthController extends BaseController
 {
 
-    public function index(){
-        return view ('login');
+    public function indexLogin(){
+        return view ('auth/login');
+    }
+
+    public function indexRegister(){
+        return view ('auth/register');
     }
 
 
@@ -27,7 +31,7 @@ class AuthController extends BaseController
         
         // Nếu là GET request, hiển thị form login
         if ($request->getMethod() === 'get') {
-            return view('login', ['error' => null, 'old' => []]);
+            return view('auth/login', ['error' => null, 'old' => []]);
         }
         
         // POST request - Xử lý đăng nhập
@@ -44,7 +48,7 @@ class AuthController extends BaseController
 
         // Validation
         if (empty($email) || empty($password)) {
-            return view('login', ['error' => 'Vui lòng điền đầy đủ thông tin!', 'old' => ['email' => $email]]);
+            return view('auth/login', ['error' => 'Vui lòng điền đầy đủ thông tin!', 'old' => ['email' => $email]]);
         }
 
         $userModel = new UserModel();
@@ -68,11 +72,11 @@ class AuthController extends BaseController
             $session->setFlashdata('success', 'Đăng nhập thành công!');
             
             // Redirect theo role_id
-            $redirectUrl = ($roleId == 4) ? '/index' : '/manager_dashboard';
+            $redirectUrl = ($roleId == 4) ? '/index' : '/manager/dashboard';
             return redirect()->to($redirectUrl);
         }
 
-        return view('login', ['error' => 'Email hoặc mật khẩu không chính xác.', 'old' => ['email' => $email]]);
+        return view('auth/login', ['error' => 'Email hoặc mật khẩu không chính xác.', 'old' => ['email' => $email]]);
     }
 
     public function register()
@@ -86,13 +90,13 @@ class AuthController extends BaseController
         // Nếu đã đăng nhập rồi và session hợp lệ, redirect về trang chủ
         if ($session->get('logged_in') && $session->get('role_id')) {
             $roleId = $session->get('role_id');
-            $redirectUrl = ($roleId == 4) ? '/index' : '/manager_dashboard';
+            $redirectUrl = ($roleId == 4) ? '/index' : '/manager/dashboard';
             return redirect()->to($redirectUrl);
         }
         
         // Nếu là GET request, hiển thị form register
         if ($request->getMethod() === 'get') {
-            return view('register', ['error' => null, 'old' => []]);
+            return view('auth/register', ['error' => null, 'old' => []]);
         }
         
         // POST request - Xử lý đăng ký
@@ -112,62 +116,32 @@ class AuthController extends BaseController
 
         // Validation
         if (empty($email) || empty($password) || empty($studentId) || empty($name)) {
-            return view('register', [
+            return view('auth/register', [
                 'error' => 'Vui lòng điền đầy đủ thông tin.',
                 'old' => ['fullname' => $name, 'email' => $email, 'student_id' => $studentId]
             ]);
         }
         
         if ($password !== $confirmPassword) {
-            return view('register', [
+            return view('auth/register', [
                 'error' => 'Mật khẩu xác nhận không khớp.',
                 'old' => ['fullname' => $name, 'email' => $email, 'student_id' => $studentId]
             ]);
         }
 
         $userModel = new UserModel();
-        $studentModel = new \App\Models\StudentModel();
-        $db = \Config\Database::connect();
 
-        // Kiểm tra Email hoặc Mã SV đã tồn tại chưa
-        if ($userModel->where('email', $email)->first()) {
-            return view('register', [
-                'error' => 'Email này đã được sử dụng.',
-                'old' => ['fullname' => $name, 'email' => $email, 'student_id' => $studentId]
-            ]);
-        }
-        if ($studentModel->where('student_code', $studentId)->first()) {
-            return view('register', [
-                'error' => 'Mã sinh viên này đã tồn tại.',
-                'old' => ['fullname' => $name, 'email' => $email, 'student_id' => $studentId]
-            ]);
-        }
-
-        // Tạo tài khoản (Transaction)
-        $db->transStart();
-
-        // Tạo User
-        $userId = $userModel->insert([
+        // Gọi Model để xử lý đăng ký
+        $result = $userModel->registerStudent([
             'email' => $email,
-            'password_hash' => password_hash($password, PASSWORD_BCRYPT),
-            'name'  => $name
-        ]);
-
-        // Gán Role Student
-        $db->table('role_user')->insert(['user_id' => $userId, 'role_id' => 4]);
-        $studentModel->insert([
-            'user_id' => $userId,
-            'student_code' => $studentId,
+            'password' => $password,
             'name' => $name,
-            'email' => $email,
-            'status' => 1
+            'student_id' => $studentId
         ]);
 
-        $db->transComplete();
-
-        if ($db->transStatus() === false) {
-            return view('register', [
-                'error' => 'Lỗi hệ thống, không thể tạo tài khoản.',
+        if (!$result['success']) {
+            return view('auth/register', [
+                'error' => $result['message'],
                 'old' => ['fullname' => $name, 'email' => $email, 'student_id' => $studentId]
             ]);
         }

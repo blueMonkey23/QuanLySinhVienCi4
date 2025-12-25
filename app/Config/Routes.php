@@ -16,9 +16,10 @@ use CodeIgniter\Router\RouteCollection;
 $routes->get('/', 'Home::defaultPage');
 
 // --- NHÓM VIEW CÔNG KHAI (Không cần đăng nhập) ---
-$routes->match(['GET'], 'login', 'AuthController::index');
+$routes->match(['GET'], 'login', 'AuthController::indexLogin');
 $routes->match(['POST'], 'login', 'AuthController::login');
-$routes->match(['GET', 'POST'], 'register', 'AuthController::register');
+$routes->match(['GET'], 'register', 'AuthController::indexRegister');
+$routes->match(['POST'], 'register', 'AuthController::register');
 $routes->get('logout', 'AuthController::logout');
 $routes->get('clear-session', function() {
     session()->destroy();
@@ -36,30 +37,30 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
     $routes->get('exam_schedule', 'Student\StudentController::exams');
 
     // B. View dành cho QUẢN LÝ (Manager/Admin)
-    $routes->get('manager_dashboard', 'Manager\Dashboard::index');
-    $routes->get('manager_schedule', 'Manager\ScheduleController::index');
+    $routes->get('manager/dashboard', 'Manager\Dashboard::index');
+    $routes->get('manager/schedule', 'Manager\ScheduleController::index');
     
     // Quản lý Lớp học (Views)
-    $routes->get('manager_classes', 'Manager\ClassController::index');
-    $routes->get('manager_class_add', 'Manager\ClassController::addForm');
-    $routes->get('manager_class_edit/(:num)', 'Manager\ClassController::editForm/$1');
-    $routes->get('manager_class_detail/(:num)', 'Manager\ClassController::detail/$1');
+    $routes->get('manager/classes', 'Manager\ClassController::index');
+    $routes->get('manager/class/add', 'Manager\ClassController::addForm');
+    $routes->get('manager/class/edit/(:num)', 'Manager\ClassController::editForm/$1');
+    $routes->get('manager/class/detail/(:num)', 'Manager\ClassController::detail/$1');
     
     // Quản lý Sinh viên (Views)
-    $routes->get('manager_students', 'Manager\StudentController::index');
+    $routes->get('manager/students', 'Manager\StudentController::index');
     
     // Actions (POST)
-    $routes->post('manager_class_add', 'Manager\ClassController::create');
-    $routes->post('manager_class_update/(:num)', 'Manager\ClassController::update/$1');
-    $routes->post('manager_class_delete/(:num)', 'Manager\ClassController::delete/$1');
-    $routes->post('manager_class_lock/(:num)', 'Manager\ClassController::toggleLock/$1');
-    $routes->post('manager_class_add_student/(:num)', 'Manager\EnrollmentController::enrollAdd/$1');
-    $routes->get('manager_class_remove_student/(:num)/(:num)', 'Manager\EnrollmentController::enrollRemove/$1/$2');
-    $routes->post('manager_class_grades/(:num)', 'Manager\EnrollmentController::updateGrades/$1');
+    $routes->post('manager/class/add', 'Manager\ClassController::create');
+    $routes->post('manager/class/update/(:num)', 'Manager\ClassController::update/$1');
+    $routes->post('manager/class/delete/(:num)', 'Manager\ClassController::delete/$1');
+    $routes->post('manager/class/lock/(:num)', 'Manager\ClassController::toggleLock/$1');
+    $routes->post('manager/class/add-student/(:num)', 'Manager\EnrollmentController::enrollAdd/$1');
+    $routes->get('manager/class/remove-student/(:num)/(:num)', 'Manager\EnrollmentController::enrollRemove/$1/$2');
+    $routes->post('manager/class/grades/(:num)', 'Manager\EnrollmentController::updateGrades/$1');
     
-    $routes->post('manager_student_add', 'Manager\StudentController::create');
-    $routes->post('manager_student_update/(:num)', 'Manager\StudentController::update/$1');
-    $routes->post('manager_student_lock/(:num)', 'Manager\StudentController::toggleLock/$1');
+    $routes->post('manager/student/add', 'Manager\StudentController::create');
+    $routes->post('manager/student/update/(:num)', 'Manager\StudentController::update/$1');
+    $routes->post('manager/student/lock/(:num)', 'Manager\StudentController::toggleLock/$1');
 });
 
 // --------------------------------------------------------------------

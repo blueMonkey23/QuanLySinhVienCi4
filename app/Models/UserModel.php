@@ -35,4 +35,52 @@ class UserModel extends Model
         $row = $query->getRow();
         return $row ? $row->role_id : 4; // Default: 4 = Student
     }
+
+    /**
+     * Đăng ký sinh viên mới (tạo User + Student + gán Role)
+     * @return array ['success' => bool, 'message' => string, 'user_id' => int]
+     */
+    public function registerStudent($data)
+    {
+        $db = \Config\Database::connect();
+        $studentModel = new StudentModel();
+        
+        // Kiểm tra Email hoặc Mã SV đã tồn tại
+        if ($this->where('email', $data['email'])->first()) {
+            return ['success' => false, 'message' => 'Email này đã được sử dụng.'];
+        }
+        if ($studentModel->where('student_code', $data['student_id'])->first()) {
+            return ['success' => false, 'message' => 'Mã sinh viên này đã tồn tại.'];
+        }
+
+        // Transaction
+        $db->transStart();
+
+        // Tạo User
+        $userId = $this->insert([
+            'email' => $data['email'],
+            'password_hash' => password_hash($data['password'], PASSWORD_BCRYPT),
+            'name'  => $data['name']
+        ]);
+
+        // Gán Role Student (ID=4)
+        $db->table('role_user')->insert(['user_id' => $userId, 'role_id' => 4]);
+
+        // Tạo Student Profile
+        $studentModel->insert([
+            'user_id' => $userId,
+            'student_code' => $data['student_id'],
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'status' => 1
+        ]);
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return ['success' => false, 'message' => 'Lỗi hệ thống, không thể tạo tài khoản.'];
+        }
+
+        return ['success' => true, 'message' => 'Đăng ký thành công!', 'user_id' => $userId];
+    }
 }

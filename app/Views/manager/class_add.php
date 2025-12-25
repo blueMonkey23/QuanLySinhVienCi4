@@ -11,19 +11,35 @@
   <style>
     .form-label { font-weight: 500; }
     .is-invalid + .error-message { color: var(--bs-danger); font-size: 0.875em; display: block; margin-top: 0.25rem; }
+    .schedule-item { transition: all 0.2s ease; }
+    .schedule-item:hover { background-color: #e9ecef !important; }
   </style>
 </head>
 <body>
-  
-  <nav class="navbar-custom d-flex justify-content-between align-items-center">...</nav>
-  <div id="sidebar">...</div>
-  <div id="overlay"></div>
+  <nav class="navbar-custom d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center">
+      <button id="toggle-btn" class="me-2">
+        <i class="bi bi-list text-white" style="font-size:1.3rem;color:var(--primary)"></i>
+      </button>
+      <a class="brand-title text-white" href="#">ỨNG DỤNG QUẢN LÝ SINH VIÊN</a>
+    </div>
 
-  <main class="fixed-mergin-top">
-    <div class="container py-4">
+    <div class="d-flex align-items-center">
+      <div class="me-3 text-end">
+          <div class="d-flex" id="authButtons">
+              </div>
+      </div>
+    </div>
+  </nav>
+
+  <?php $activePage = 'classes'; include(APPPATH . 'Views/partials/manager_sidebar.php'); ?>
+  <div id="overlay" class="overlay"></div>
+
+  <main class="content">
+    <div class="container-fluid py-4">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="mb-0">Thêm Lớp học mới</h3>
-        <a href="<?= base_url('manager_classes') ?>" class="btn btn-outline-secondary btn-sm">
+        <a href="<?= base_url('manager/classes') ?>" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-arrow-left"></i> Quay lại
         </a>
       </div>
@@ -47,7 +63,7 @@
           <div class="card shadow-sm">
             <div class="card-body p-4">
 
-              <form method="POST" action="<?= base_url('manager_class_add') ?>">
+              <form method="POST" action="<?= base_url('manager/class/add') ?>">
                 <?= csrf_field() ?>
                 <div class="mb-3">
                   <label for="class_code" class="form-label">Mã lớp học <span class="text-danger">*</span></label>
@@ -111,35 +127,51 @@
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="day_of_week" class="form-label">Ngày học trong tuần <span class="text-danger">*</span></label>
-                        <select class="form-select <?= session()->getFlashdata('errors')['day_of_week'] ?? '' ? 'is-invalid' : '' ?>" id="day_of_week" name="day_of_week" required>
-                            <option value="">-- Chọn Ngày --</option>
-                            <option value="Thứ Hai" <?= old('day_of_week') == 'Thứ Hai' ? 'selected' : '' ?>>Thứ Hai</option>
-                            <option value="Thứ Ba" <?= old('day_of_week') == 'Thứ Ba' ? 'selected' : '' ?>>Thứ Ba</option>
-                            <option value="Thứ Tư" <?= old('day_of_week') == 'Thứ Tư' ? 'selected' : '' ?>>Thứ Tư</option>
-                            <option value="Thứ Năm" <?= old('day_of_week') == 'Thứ Năm' ? 'selected' : '' ?>>Thứ Năm</option>
-                            <option value="Thứ Sáu" <?= old('day_of_week') == 'Thứ Sáu' ? 'selected' : '' ?>>Thứ Sáu</option>
-                            <option value="Thứ Bảy" <?= old('day_of_week') == 'Thứ Bảy' ? 'selected' : '' ?>>Thứ Bảy</option>
-                            <option value="Chủ Nhật" <?= old('day_of_week') == 'Chủ Nhật' ? 'selected' : '' ?>>Chủ Nhật</option>
-                        </select>
-                        <?php if (session()->getFlashdata('errors')['day_of_week'] ?? ''): ?>
-                          <div class="invalid-feedback"><?= session()->getFlashdata('errors')['day_of_week'] ?></div>
-                        <?php endif; ?>
+                <!-- Lịch học trong tuần -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <label class="form-label fw-bold mb-0">Lịch học trong tuần</label>
+                        <button type="button" class="btn btn-sm btn-success" onclick="addScheduleRow()">
+                            <i class="bi bi-plus-circle"></i> Thêm lịch học
+                        </button>
                     </div>
-
-                    <div class="col-md-6 mb-3">
-                        <label for="schedule_time" class="form-label">Ca học (Giờ bắt đầu - Giờ kết thúc) <span class="text-danger">*</span></label>
-                        <select class="form-select <?= session()->getFlashdata('errors')['schedule_time'] ?? '' ? 'is-invalid' : '' ?>" id="schedule_time" name="schedule_time" required>
-                            <option value="">-- Chọn Ca học --</option>
-                            <option value="07:30-11:30" <?= old('schedule_time') == '07:30-11:30' ? 'selected' : '' ?>>Sáng (07:30 - 11:30)</option>
-                            <option value="12:45-16:00" <?= old('schedule_time') == '12:45-16:00' ? 'selected' : '' ?>>Chiều (12:45 - 16:00)</option>
-                            <option value="18:30-21:30" <?= old('schedule_time') == '18:30-21:30' ? 'selected' : '' ?>>Tối (18:30 - 21:30)</option>
-                        </select>
-                        <?php if (session()->getFlashdata('errors')['schedule_time'] ?? ''): ?>
-                          <div class="invalid-feedback"><?= session()->getFlashdata('errors')['schedule_time'] ?></div>
-                        <?php endif; ?>
+                    <div id="schedules-container">
+                        <!-- Schedule row template sẽ được thêm vào đây -->
+                        <div class="schedule-item p-3 mb-2 border rounded bg-light">
+                            <div class="row g-2">
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-semibold">Ngày học <span class="text-danger">*</span></label>
+                                    <select class="form-select form-select-sm" name="schedules[0][day_of_week]" required>
+                                        <option value="">Chọn ngày</option>
+                                        <option value="Thứ Hai">Thứ Hai</option>
+                                        <option value="Thứ Ba">Thứ Ba</option>
+                                        <option value="Thứ Tư">Thứ Tư</option>
+                                        <option value="Thứ Năm">Thứ Năm</option>
+                                        <option value="Thứ Sáu">Thứ Sáu</option>
+                                        <option value="Thứ Bảy">Thứ Bảy</option>
+                                        <option value="Chủ Nhật">Chủ Nhật</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-semibold">Ca học <span class="text-danger">*</span></label>
+                                    <select class="form-select form-select-sm" name="schedules[0][schedule_time]" required>
+                                        <option value="">Chọn ca</option>
+                                        <option value="07:30-11:30">Sáng (7h30-11h30)</option>
+                                        <option value="12:45-16:00">Chiều (12h45-16h)</option>
+                                        <option value="18:30-21:30">Tối (18h30-21h30)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-semibold">Phòng học <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-sm" name="schedules[0][room]" placeholder="VD: P52" required>
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button type="button" class="btn btn-danger btn-sm w-100" onclick="removeScheduleRow(this)" disabled>
+                                        <i class="bi bi-trash"></i> Xóa
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -148,15 +180,14 @@
                     <i class="bi bi-plus-circle-fill me-2"></i> Thêm Lớp học
                   </button>
                 </div>
-
               </form>
-              
             </div>
           </div>
         </div>
       </div>
     </div>
   </main>
+
   <script>
   const CONFIG = {
     API_BASE: '<?= base_url() ?>',
@@ -166,7 +197,71 @@
   </script>
   <script src="<?= base_url('assets/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
   <script src="<?= base_url('assets/js/script.js') ?>"></script>
+
   <script>
+  let scheduleIndex = 1;
+
+  function addScheduleRow() {
+      const container = document.getElementById('schedules-container');
+      const newRow = document.createElement('div');
+      newRow.className = 'schedule-item p-3 mb-2 border rounded bg-light';
+      newRow.innerHTML = `
+          <div class="row g-2">
+              <div class="col-md-3">
+                  <label class="form-label small fw-semibold">Ngày học <span class="text-danger">*</span></label>
+                  <select class="form-select form-select-sm" name="schedules[\${scheduleIndex}][day_of_week]" required>
+                      <option value="">Chọn ngày</option>
+                      <option value="Thứ Hai">Thứ Hai</option>
+                      <option value="Thứ Ba">Thứ Ba</option>
+                      <option value="Thứ Tư">Thứ Tư</option>
+                      <option value="Thứ Năm">Thứ Năm</option>
+                      <option value="Thứ Sáu">Thứ Sáu</option>
+                      <option value="Thứ Bảy">Thứ Bảy</option>
+                      <option value="Chủ Nhật">Chủ Nhật</option>
+                  </select>
+              </div>
+              <div class="col-md-3">
+                  <label class="form-label small fw-semibold">Ca học <span class="text-danger">*</span></label>
+                  <select class="form-select form-select-sm" name="schedules[\${scheduleIndex}][schedule_time]" required>
+                      <option value="">Chọn ca</option>
+                      <option value="07:30-11:30">Sáng (7h30-11h30)</option>
+                      <option value="12:45-16:00">Chiều (12h45-16h)</option>
+                      <option value="18:30-21:30">Tối (18h30-21h30)</option>
+                  </select>
+              </div>
+              <div class="col-md-3">
+                  <label class="form-label small fw-semibold">Phòng học <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control form-control-sm" name="schedules[\${scheduleIndex}][room]" placeholder="VD: P52" required>
+              </div>
+              <div class="col-md-3 d-flex align-items-end">
+                  <button type="button" class="btn btn-danger btn-sm w-100" onclick="removeScheduleRow(this)">
+                      <i class="bi bi-trash"></i> Xóa
+                  </button>
+              </div>
+          </div>
+      `;
+      container.appendChild(newRow);
+      scheduleIndex++;
+      updateDeleteButtons();
+  }
+
+  function removeScheduleRow(btn) {
+      btn.closest('.schedule-item').remove();
+      updateDeleteButtons();
+  }
+
+  function updateDeleteButtons() {
+      const rows = document.querySelectorAll('.schedule-item');
+      rows.forEach((row, index) => {
+          const deleteBtn = row.querySelector('button[onclick*="removeScheduleRow"]');
+          if (rows.length === 1) {
+              deleteBtn.disabled = true;
+          } else {
+              deleteBtn.disabled = false;
+          }
+      });
+  }
+
   // Ngăn double submit
   document.querySelector('form').addEventListener('submit', function(e) {
     const btn = this.querySelector('button[type="submit"]');

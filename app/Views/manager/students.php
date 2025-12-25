@@ -45,7 +45,7 @@
             <?php endif; ?>
 
             <div class="card p-3 mb-3 shadow-sm border-0">
-                <form method="GET" action="<?= base_url('manager_students') ?>" class="row">
+                <form method="GET" action="<?= base_url('manager/students') ?>" class="row">
                     <div class="col-md-6">
                         <div class="input-group">
                             <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
@@ -94,7 +94,7 @@
                                         <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editModal<?= $student['id'] ?>" title="Sửa">
                                             <i class="bi bi-pencil"></i>
                                         </button>
-                                        <form method="POST" action="<?= base_url('manager_student_lock/' . $student['id']) ?>" style="display:inline;">
+                                        <form method="POST" action="<?= base_url('manager/student/lock/' . $student['id']) ?>" style="display:inline;">
                                             <?= csrf_field() ?>
                                             <button type="submit" class="btn btn-sm <?= $student['is_locked'] == 0 ? 'btn-success' : 'btn-secondary' ?>" title="<?= $student['is_locked'] == 0 ? 'Mở khóa' : 'Khóa' ?>">
                                                 <i class="bi bi-<?= $student['is_locked'] == 0 ? 'unlock' : 'lock' ?>"></i>
@@ -114,7 +114,7 @@
     <div class="modal fade" id="studentModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form method="POST" action="<?= base_url('manager_student_add') ?>">
+                <form method="POST" action="<?= base_url('manager/student/add') ?>">
                     <?= csrf_field() ?>
                     <div class="modal-header">
                         <h5 class="modal-title fw-bold">Thêm Sinh viên</h5>
@@ -165,7 +165,7 @@
     <div class="modal fade" id="editModal<?= $student['id'] ?>" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form method="POST" action="<?= base_url('manager_student_update/' . $student['id']) ?>">
+                <form method="POST" action="<?= base_url('manager/student/update/' . $student['id']) ?>">
                     <?= csrf_field() ?>
                     <div class="modal-header">
                         <h5 class="modal-title fw-bold">Sửa Sinh viên</h5>

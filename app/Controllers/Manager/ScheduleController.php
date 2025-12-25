@@ -3,43 +3,41 @@
 namespace App\Controllers\Manager;
 
 use App\Controllers\BaseController;
+use App\Models\ScheduleModel;
+use App\Models\SemesterModel;
 
 class ScheduleController extends BaseController
 {
     public function index()
     {
+        $semesterId = $this->request->getGet('semester_id');
         $teacherId = $this->request->getGet('teacher_id');
         $room = $this->request->getGet('room');
-        $semesterId = 1;
 
-        $db = \Config\Database::connect();
-        $builder = $db->table('classes')
-                      ->select("classes.id as class_id, classes.class_code, classes.format,
-                                subjects.name as subject_name,
-                                CONCAT(teachers.first_name, ' ', teachers.last_name) as teacher_name,
-                                schedules.day_of_week, schedules.start_time, schedules.end_time, schedules.room")
-                      ->join('schedules', 'classes.id = schedules.class_id')
-                      ->join('subjects', 'classes.subject_id = subjects.id', 'left')
-                      ->join('teachers', 'classes.teacher_id = teachers.id', 'left')
-                      ->where('classes.semester_id', $semesterId);
-
-        if (!empty($teacherId)) {
-            $builder->where('classes.teacher_id', $teacherId);
-        }
-        if (!empty($room)) {
-            $builder->like('schedules.room', $room);
+        $semesterModel = new SemesterModel();
+        $semesters = $semesterModel->getAllSemesters();
+        
+        // Nếu không chọn học kỳ, dùng học kỳ hiện tại
+        if (empty($semesterId)) {
+            $currentSemester = $semesterModel->getCurrentSemester();
+            $semesterId = $currentSemester['id'] ?? 1;
         }
 
-        $data = $builder->orderBy('schedules.day_of_week', 'ASC')
-                        ->orderBy('schedules.start_time', 'ASC')
-                        ->get()->getResultArray();
+        $scheduleModel = new ScheduleModel();
+        $data = $scheduleModel->getSchedulesWithDetails([
+            'semester_id' => $semesterId,
+            'teacher_id' => $teacherId,
+            'room' => $room
+        ]);
 
         $viewData = [
             'schedules' => $data,
+            'semesters' => $semesters,
+            'semesterId' => $semesterId,
             'teacherId' => $teacherId,
             'room' => $room
         ];
         
-        return view('manager_schedule', $viewData);
+        return view('manager/schedule', $viewData);
     }
 }

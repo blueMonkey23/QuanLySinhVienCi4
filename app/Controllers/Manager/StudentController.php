@@ -10,13 +10,11 @@ class StudentController extends BaseController
 {
     protected $studentModel;
     protected $userModel;
-    protected $db;
 
     public function __construct()
     {
         $this->studentModel = new StudentModel();
         $this->userModel = new UserModel();
-        $this->db = \Config\Database::connect();
     }
 
     // 1. Danh sách sinh viên - GET
@@ -36,7 +34,7 @@ class StudentController extends BaseController
             'keyword' => $keyword
         ];
 
-        return view('manager_students', $viewData);
+        return view('manager/students', $viewData);
     }
 
     // 2. Thêm sinh viên - POST
@@ -56,44 +54,22 @@ class StudentController extends BaseController
             return redirect()->back()->withInput();
         }
 
-        // Kiểm tra trùng
-        if ($this->studentModel->where('student_code', $studentCode)->first()) {
-            $session->setFlashdata('error', 'Mã sinh viên đã tồn tại.');
-            return redirect()->back()->withInput();
-        }
-        if ($this->userModel->where('email', $email)->first()) {
-            $session->setFlashdata('error', 'Email đã được sử dụng.');
-            return redirect()->back()->withInput();
-        }
-
-        $this->db->transStart();
-
-        $userId = $this->userModel->insert([
+        // Gọi Model để tạo sinh viên
+        $result = $this->studentModel->createStudentWithUser([
+            'studentCode' => $studentCode,
+            'fullname' => $fullname,
             'email' => $email,
-            'password_hash' => password_hash($studentCode, PASSWORD_BCRYPT),
-            'name' => $fullname
+            'dob' => $dob,
+            'gender' => $gender,
+            'address' => $address
         ]);
 
-        $this->db->table('role_user')->insert(['user_id' => $userId, 'role_id' => 4]);
-
-        $this->studentModel->insert([
-            'user_id' => $userId,
-            'student_code' => $studentCode,
-            'name' => $fullname,
-            'dob' => $dob ?: null,
-            'gender' => $gender ?: 'other',
-            'address' => $address ?: '',
-            'status' => 1
-        ]);
-
-        $this->db->transComplete();
-
-        if ($this->db->transStatus() === false) {
-            $session->setFlashdata('error', 'Lỗi khi tạo sinh viên.');
+        if (!$result['success']) {
+            $session->setFlashdata('error', $result['message']);
             return redirect()->back()->withInput();
         }
 
-        $session->setFlashdata('success', 'Thêm sinh viên thành công!');
+        $session->setFlashdata('success', $result['message']);
         return redirect()->to('/manager_students');
     }
 

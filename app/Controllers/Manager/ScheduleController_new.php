@@ -46,6 +46,6 @@ class ScheduleController extends BaseController
             'selectedRoom' => $room
         ];
 
-        return view('manager_schedule', $viewData);
+        return view('manager/schedule', $viewData);
     }
 }

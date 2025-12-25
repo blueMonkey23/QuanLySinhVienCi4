@@ -14,7 +14,7 @@
     <div class="container py-4">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="mb-0">Sửa thông tin Lớp học</h3>
-        <a href="<?= base_url('manager_classes') ?>" class="btn btn-outline-secondary btn-sm">
+        <a href="<?= base_url('manager/classes') ?>" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-arrow-left"></i> Quay lại
         </a>
       </div>
@@ -38,7 +38,7 @@
           <div class="card shadow-sm">
             <div class="card-body p-4">
               
-              <form method="POST" action="<?= base_url('manager_class_update/' . $class['id']) ?>">
+              <form method="POST" action="<?= base_url('manager/class/update/' . $class['id']) ?>">
                 <?= csrf_field() ?>
                 
                 <div class="mb-3">
